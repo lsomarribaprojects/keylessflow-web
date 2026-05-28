@@ -25,10 +25,12 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "users read own profile" on public.profiles;
 create policy "users read own profile"
     on public.profiles for select
     using (auth.uid() = id);
 
+drop policy if exists "users update own profile" on public.profiles;
 create policy "users update own profile"
     on public.profiles for update
     using (auth.uid() = id);
@@ -56,10 +58,18 @@ create trigger on_auth_user_created
 -- -----------------------------------------------------------------------------
 -- subscriptions  (1:1 with profiles)
 -- -----------------------------------------------------------------------------
-create type subscription_plan as enum ('free', 'pro', 'team');
-create type subscription_status as enum (
-    'active', 'trialing', 'past_due', 'canceled', 'unpaid', 'incomplete'
-);
+-- Enums (guarded so the whole script stays re-runnable).
+do $$ begin
+    create type subscription_plan as enum ('free', 'pro', 'team');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+    create type subscription_status as enum (
+        'active', 'trialing', 'past_due', 'canceled', 'unpaid', 'incomplete'
+    );
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists public.subscriptions (
     user_id                   uuid primary key references public.profiles(id) on delete cascade,
@@ -75,6 +85,7 @@ create table if not exists public.subscriptions (
 
 alter table public.subscriptions enable row level security;
 
+drop policy if exists "users read own subscription" on public.subscriptions;
 create policy "users read own subscription"
     on public.subscriptions for select
     using (auth.uid() = user_id);
@@ -120,6 +131,7 @@ create index if not exists usage_logs_user_created_idx
 
 alter table public.usage_logs enable row level security;
 
+drop policy if exists "users read own usage" on public.usage_logs;
 create policy "users read own usage"
     on public.usage_logs for select
     using (auth.uid() = user_id);

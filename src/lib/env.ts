@@ -23,21 +23,30 @@ function optional(name: string, fallback = ""): string {
 }
 
 export const env = {
-  // Supabase
+  // Supabase — required for the app to boot (auth + DB are core).
   SUPABASE_URL: required("NEXT_PUBLIC_SUPABASE_URL"),
   SUPABASE_ANON_KEY: required("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
   SUPABASE_SERVICE_ROLE_KEY: required("SUPABASE_SERVICE_ROLE_KEY"),
 
-  // Stripe
-  STRIPE_PUBLISHABLE_KEY: required("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
-  STRIPE_SECRET_KEY: required("STRIPE_SECRET_KEY"),
-  STRIPE_WEBHOOK_SECRET: optional("STRIPE_WEBHOOK_SECRET"), // optional in dev
-  STRIPE_PRICE_ID_PRO: required("STRIPE_PRICE_ID_PRO"),
+  // Stripe — optional at boot; the checkout/webhook routes validate at runtime
+  // and return a clear error if not configured. Lets us ship auth before
+  // billing is wired.
+  STRIPE_PUBLISHABLE_KEY: optional("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
+  STRIPE_SECRET_KEY: optional("STRIPE_SECRET_KEY"),
+  STRIPE_WEBHOOK_SECRET: optional("STRIPE_WEBHOOK_SECRET"),
+  STRIPE_PRICE_ID_PRO: optional("STRIPE_PRICE_ID_PRO"),
   STRIPE_PRICE_ID_TEAM: optional("STRIPE_PRICE_ID_TEAM"),
 
-  // Groq (server-only — never exposed to browser)
-  GROQ_API_KEY: required("GROQ_API_KEY"),
+  // Groq (server-only) — optional at boot; /api/transcribe validates at runtime.
+  GROQ_API_KEY: optional("GROQ_API_KEY"),
 
   // Site
   SITE_URL: optional("NEXT_PUBLIC_SITE_URL", "http://localhost:3000"),
 } as const;
+
+/** Throw a clear error from a route handler when an optional var is actually needed. */
+export function requireEnv(key: keyof typeof env): string {
+  const v = env[key];
+  if (!v) throw new Error(`Env var ${key} is required for this operation but is not set.`);
+  return v;
+}

@@ -8,18 +8,24 @@
 import "server-only";
 import Stripe from "stripe";
 
-import { env } from "@/lib/env";
+import { env, requireEnv } from "@/lib/env";
 
-// Lock the API version so future Stripe upgrades can't silently break us.
-// Bump deliberately when migrating; check stripe.com/docs/upgrades for the diff.
-export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-  // Use the SDK's pinned default API version (matches the installed types).
-  // To pin explicitly later: set apiVersion to whatever stripe types accept.
-  appInfo: {
-    name: "KeyLess Flow",
-    url: env.SITE_URL,
-  },
-});
+/**
+ * Lazily-constructed Stripe singleton.
+ *
+ * We don't build it at import time because STRIPE_SECRET_KEY is optional at
+ * boot (auth ships before billing). Routes that need Stripe call `getStripe()`,
+ * which throws a clear error if the key is missing.
+ */
+let _stripe: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (_stripe) return _stripe;
+  _stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
+    appInfo: { name: "KeyLess Flow", url: env.SITE_URL },
+  });
+  return _stripe;
+}
 
 export const STRIPE_PRICES = {
   pro: env.STRIPE_PRICE_ID_PRO,

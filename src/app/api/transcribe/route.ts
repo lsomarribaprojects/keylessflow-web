@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { SubscriptionRow } from "@/lib/supabase/database.types";
+import { verifyDesktopToken } from "@/lib/desktop-token";
 
 const GROQ_MODEL = "whisper-large-v3-turbo";
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/audio/transcriptions";
@@ -27,6 +28,9 @@ export async function POST(req: NextRequest) {
   const t0 = Date.now();
 
   // ---------------------------------------------------------- 1. Auth check
+  // Accept two token types:
+  //   - Desktop HMAC token (prefix "kfd_") — minted by /api/auth/activate
+  //   - Supabase JWT (web sessions, future browser-based dictation)
   const authHeader = req.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ")
     ? authHeader.slice(7)
@@ -36,17 +40,32 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createAdminClient();
-  const { data: userData, error: authErr } = await admin.auth.getUser(token);
-  if (authErr || !userData?.user) {
-    return NextResponse.json({ error: "invalid_token" }, { status: 401 });
+  let userId: string;
+  let userEmail = "";
+
+  if (token.startsWith("kfd_")) {
+    const desktop = verifyDesktopToken(token);
+    if (!desktop) {
+      return NextResponse.json({ error: "invalid_token" }, { status: 401 });
+    }
+    userId = desktop.userId;
+    // Look up email for logging; not strictly required for proxy.
+    const { data: lookup } = await admin.auth.admin.getUserById(userId);
+    userEmail = lookup?.user?.email ?? "";
+  } else {
+    const { data: userData, error: authErr } = await admin.auth.getUser(token);
+    if (authErr || !userData?.user) {
+      return NextResponse.json({ error: "invalid_token" }, { status: 401 });
+    }
+    userId = userData.user.id;
+    userEmail = userData.user.email ?? "";
   }
-  const user = userData.user;
 
   // ---------------------------------------------------- 2. Subscription check
   const subResult = await admin
     .from("subscriptions")
     .select("plan,status")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .single();
   const sub = subResult.data as Pick<SubscriptionRow, "plan" | "status"> | null;
 
@@ -97,7 +116,7 @@ export async function POST(req: NextRequest) {
     // Log the failure so we don't burn quota on bad uploads
     await admin.from("usage_logs").insert([
       {
-        user_id: user.id,
+        user_id: userId,
         seconds_audio: 0,
         bytes_upload: file.size,
         model: GROQ_MODEL,
@@ -120,7 +139,7 @@ export async function POST(req: NextRequest) {
   const secondsEstimate = Math.round(file.size / 4096);
   await admin.from("usage_logs").insert([
     {
-      user_id: user.id,
+      user_id: userId,
       seconds_audio: secondsEstimate,
       bytes_upload: file.size,
       model: GROQ_MODEL,
@@ -128,6 +147,7 @@ export async function POST(req: NextRequest) {
       success: true,
     },
   ] as never);
+  void userEmail; // reserved for future per-user logging context
 
   return NextResponse.json({
     text,

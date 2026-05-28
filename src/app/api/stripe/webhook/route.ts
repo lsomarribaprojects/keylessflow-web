@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const stripe = getStripe();
   const rawBody = await req.text();
   let event: Stripe.Event;
   try {
@@ -103,7 +104,7 @@ async function mirrorSubscription(
   userId: string,
   subscriptionId: string,
 ) {
-  const sub = await stripe.subscriptions.retrieve(subscriptionId);
+  const sub = await getStripe().subscriptions.retrieve(subscriptionId);
   await mirrorSubscriptionFromObject(admin, userId, sub);
 }
 

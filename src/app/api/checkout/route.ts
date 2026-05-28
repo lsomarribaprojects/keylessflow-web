@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { env } from "@/lib/env";
-import { stripe, STRIPE_PRICES, type Plan } from "@/lib/stripe";
+import { getStripe, STRIPE_PRICES, type Plan } from "@/lib/stripe";
 import { createServerClient, createAdminClient } from "@/lib/supabase/server";
 import type { SubscriptionRow } from "@/lib/supabase/database.types";
 
@@ -31,6 +31,8 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+
+  const stripe = getStripe();
 
   // Require an authenticated user — landing's "Empezar Pro" button must route
   // through /signup first if no session exists.
