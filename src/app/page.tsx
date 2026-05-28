@@ -1,5 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import Reveal from "@/components/Reveal";
+import {
+  AmbientGlow,
+  Counter,
+  Magnetic,
+  ParallaxFloat,
+  Words,
+} from "@/components/motion-primitives";
+
+const REPO = "https://github.com/lsomarribaprojects/KeyLess-Flow";
 
 export default function Home() {
   return (
@@ -7,9 +17,11 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
-        <SocialProof />
+        <TrustBand />
+        <Stats />
         <Features />
         <HowItWorks />
+        <Compare />
         <Pricing />
         <FAQ />
         <FinalCTA />
@@ -19,53 +31,37 @@ export default function Home() {
   );
 }
 
-/* ---------------------------------------------------------------- Header */
+/* ============================================================ Header (N: slim, non-default) */
 function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-50 border-b border-border bg-bg/70 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3.5">
         <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/brand/hummingbird.png"
-            alt="KeyLess Flow"
-            width={28}
-            height={28}
-            priority
-          />
-          <span className="text-base font-semibold tracking-tight">
+          <Image src="/brand/hummingbird.png" alt="" width={26} height={26} priority />
+          <span className="font-display text-[1.05rem] font-semibold tracking-tight">
             KeyLess Flow
           </span>
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-[var(--muted)] md:flex">
-          <a href="#features" className="hover:text-foreground transition">
-            Features
+        <span className="hidden font-mono text-[0.7rem] tracking-wide text-faint sm:inline">
+          v1.0 · windows
+        </span>
+        <div className="ml-auto flex items-center gap-1 sm:gap-5">
+          <a href="#precios" className="hidden text-sm text-muted transition-colors duration-150 hover:text-fg sm:inline">
+            Precios
           </a>
-          <a href="#pricing" className="hover:text-foreground transition">
-            Pricing
-          </a>
-          <a href="#faq" className="hover:text-foreground transition">
+          <a href="#faq" className="hidden text-sm text-muted transition-colors duration-150 hover:text-fg sm:inline">
             FAQ
           </a>
           <a
-            href="https://github.com/lsomarribaprojects/KeyLess-Flow"
+            href={REPO}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground transition"
+            aria-label="Repositorio en GitHub"
+            className="hidden rounded-md p-2 text-muted transition-colors duration-150 hover:text-fg sm:inline-flex"
           >
-            GitHub
+            <GitHubIcon />
           </a>
-        </nav>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="hidden text-sm text-[var(--muted)] hover:text-foreground transition sm:inline"
-          >
-            Iniciar sesión
-          </Link>
-          <a
-            href="#download"
-            className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:opacity-90"
-          >
+          <a href="#download" className="btn-primary text-sm">
             Descargar
           </a>
         </div>
@@ -74,155 +70,223 @@ function Header() {
   );
 }
 
-/* ----------------------------------------------------------------- Hero */
+/* ============================================================ Hero (asymmetric split — breaks center axis) */
 function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <div className="hero-glow absolute inset-0 -z-10" />
-      <div className="mx-auto max-w-6xl px-6 pt-24 pb-20 text-center md:pt-32 md:pb-28">
-        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs text-[var(--muted)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-teal animate-pulse" />
-          Disponible para Windows • macOS próximamente
-        </span>
-        <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-semibold tracking-tight leading-[1.05] md:text-7xl">
-          Habla. <span className="brand-text-gradient">Aparece donde escribes.</span>
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-[var(--muted)] md:text-xl">
-          Mantén un hotkey, dicta, suelta. El texto aparece exacto donde está tu cursor.
-          En cualquier app, en cualquier idioma, por <span className="text-foreground font-medium">25× menos costo</span> que Wispr Flow.
-        </p>
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
-            href="#download"
-            className="brand-gradient rounded-full px-7 py-3.5 text-base font-semibold text-[var(--brand-navy)] shadow-[0_8px_32px_-8px_rgba(63,177,224,0.5)] transition hover:scale-[1.02]"
+    <section className="relative overflow-hidden border-b border-border">
+      <AmbientGlow />
+      <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-20 pb-24 md:grid-cols-[1.05fr_0.95fr] md:pt-28 md:pb-28">
+        {/* Left — type-driven, left aligned */}
+        <Reveal className="max-w-xl">
+          <span className="inline-flex items-center gap-2.5 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
+            <span className="live-dot" />
+            Disponible para Windows · macOS pronto
+          </span>
+          <h1
+            className="font-display mt-6 font-semibold leading-[1.02] tracking-tight"
+            style={{ fontSize: "var(--text-display)" }}
           >
-            Descargar para Windows
-          </a>
-          <a
-            href="#pricing"
-            className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-7 py-3.5 text-base font-medium text-foreground transition hover:bg-[var(--surface-2)]"
-          >
-            Ver planes
-          </a>
-        </div>
-        <p className="mt-5 text-xs text-[var(--muted)]">
-          Gratis con tu propia Groq API key · Sin tarjeta de crédito requerida
-        </p>
-
-        {/* Visual placeholder for a future product GIF/video */}
-        <div className="mx-auto mt-16 max-w-4xl">
-          <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-1 shadow-[0_24px_64px_-32px_rgba(63,177,224,0.4)]">
-            <div className="rounded-xl bg-[var(--surface-2)] aspect-video flex items-center justify-center">
-              <span className="text-[var(--muted)] text-sm">
-                [ Demo video coming soon · pill recording → paste en vivo ]
+            <span className="block">
+              <Words>Habla.</Words>
+            </span>
+            <span className="block">
+              <Words start={0.25}>Aparece</Words>{" "}
+              <span className="mark">
+                <Words start={0.5}>donde escribes.</Words>
               </span>
-            </div>
+            </span>
+          </h1>
+          <p className="mt-7 max-w-md text-lg leading-relaxed text-muted">
+            Mantén un hotkey, dicta, suelta. El texto cae exacto donde está tu cursor —
+            en Notepad, Chrome, Slack o VS&nbsp;Code. Sin mensualidad.
+          </p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Magnetic>
+              <a href="#download" className="btn-primary">
+                <DownloadIcon /> Descargar para Windows
+              </a>
+            </Magnetic>
+            <Magnetic strength={0.18}>
+              <a href="#precios" className="btn-ghost">
+                Ver precios
+              </a>
+            </Magnetic>
           </div>
+          <p className="mt-5 font-mono text-xs text-faint">
+            gratis con tu propia Groq API key · sin tarjeta
+          </p>
+        </Reveal>
+
+        {/* Right — the product itself, as CSS art (no fake browser chrome) */}
+        <ParallaxFloat strength={50} className="md:justify-self-end">
+          <Reveal i={2}>
+            <PillMotif />
+          </Reveal>
+        </ParallaxFloat>
+      </div>
+    </section>
+  );
+}
+
+/* The real app's floating pill, rebuilt in CSS. Motion that *means* something:
+   it shows what dictation looks like. */
+function PillMotif() {
+  const bars = [0.5, 0.9, 0.6, 1.05, 0.75, 1.2, 0.55, 0.95, 0.7, 1.1, 0.6];
+  return (
+    <div className="w-full max-w-sm">
+      <div className="flex justify-center">
+        <div className="inline-flex items-center gap-4 rounded-full border border-border-2 bg-surface px-6 py-3.5 shadow-[0_24px_60px_-30px_oklch(0.72_0.12_233_/_0.6)]">
+          <Image src="/brand/hummingbird.png" alt="" width={22} height={22} />
+          <div className="wave" aria-hidden>
+            {bars.map((d, idx) => (
+              <i
+                key={idx}
+                style={{
+                  animationDuration: `${900 + d * 360}ms`,
+                  animationDelay: `${idx * -130}ms`,
+                }}
+              />
+            ))}
+          </div>
+          <span className="font-mono text-xs text-muted">REC</span>
         </div>
       </div>
-    </section>
+      <div className="mt-5 rounded-lg border border-border bg-bg-band p-4">
+        <p className="font-mono text-[0.7rem] uppercase tracking-widest text-faint">transcrito</p>
+        <p className="mt-2 leading-relaxed">
+          Mándale el reporte a Ana antes de las cinco
+          <span className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[0.18em] bg-accent" aria-hidden />
+        </p>
+      </div>
+    </div>
   );
 }
 
-/* ------------------------------------------------------------ Social proof */
-function SocialProof() {
+/* ============================================================ Trust band (colour shift = section ornament) */
+function TrustBand() {
   return (
-    <section className="border-y border-[var(--border)] bg-[var(--surface)]/40">
-      <div className="mx-auto max-w-6xl px-6 py-8 text-center">
-        <p className="text-xs uppercase tracking-widest text-[var(--muted)]">
-          Open source · Groq Whisper Large v3 Turbo · Privacy first
+    <section className="border-b border-border bg-bg-band">
+      <div className="mx-auto max-w-6xl px-6 py-7">
+        <p className="text-center font-mono text-xs tracking-wide text-faint">
+          OPEN SOURCE (MIT) &nbsp;·&nbsp; GROQ WHISPER LARGE V3 TURBO &nbsp;·&nbsp; EL AUDIO NUNCA SE GUARDA EN NUESTROS SERVIDORES
         </p>
       </div>
     </section>
   );
 }
 
-/* ------------------------------------------------------------- Features */
-function Features() {
-  const items = [
+/* ============================================================ Stat-led row (honest numbers only) */
+function Stats() {
+  const stats: { node: React.ReactNode; u: string }[] = [
     {
-      title: "Funciona en cualquier app",
-      body: "Notepad, Chrome, Slack, VS Code, Word. Si tiene un campo de texto, KeyLess Flow escribe ahí.",
-      icon: "✺",
+      node: <Counter to={0.6} decimals={2} prefix="~$" />,
+      u: "/ mes con tu Groq key (aprox.)",
     },
-    {
-      title: "Hotkeys configurables",
-      body: "Ctrl+Alt para mantener-y-hablar, o doble Ctrl para modo manos libres.",
-      icon: "⌘",
-    },
-    {
-      title: "Multilenguaje",
-      body: "Español, inglés, francés, portugués y los 90+ idiomas que soporta Whisper.",
-      icon: "🌐",
-    },
-    {
-      title: "Comandos por voz",
-      body: '"Nueva línea", "punto", "coma" — atajos verbales se convierten en formato real.',
-      icon: "▷",
-    },
-    {
-      title: "Historial local + dashboard",
-      body: "SQLite en tu máquina. Dashboard web para buscar, copiar y re-pegar transcripciones pasadas.",
-      icon: "≡",
-    },
-    {
-      title: "Tu data, tu control",
-      body: "Audio nunca se almacena en nuestros servidores. Plan Free corre 100% en tu máquina.",
-      icon: "✓",
-    },
+    { node: <Counter to={40} suffix=" MB" />, u: "instalador · sin Python ni terminal" },
+    { node: <Counter to={90} suffix="+" />, u: "idiomas vía Whisper" },
+    { node: <span>0</span>, u: "audio almacenado por nosotros" },
   ];
-
   return (
-    <section id="features" className="mx-auto max-w-6xl px-6 py-24 md:py-32">
-      <div className="max-w-2xl">
-        <p className="text-sm font-medium text-brand-teal">Features</p>
-        <h2 className="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">
-          Todo lo que esperas de un dictador moderno.
-        </h2>
-        <p className="mt-4 text-lg text-[var(--muted)]">
-          Sin la mensualidad de Wispr Flow ni la complejidad de configurar Whisper a mano.
-        </p>
-      </div>
-      <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
-          <div
-            key={item.title}
-            className="group rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:border-brand-teal/30 hover:bg-[var(--surface-2)]"
-          >
-            <div className="brand-text-gradient text-3xl">{item.icon}</div>
-            <h3 className="mt-4 text-lg font-semibold">{item.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{item.body}</p>
-          </div>
+    <section className="mx-auto max-w-6xl px-6 py-16 md:py-20">
+      <div className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((s, idx) => (
+          <Reveal as="div" i={idx} key={s.u} className="bg-bg p-6">
+            <div className="font-display text-4xl font-semibold tracking-tight">{s.node}</div>
+            <p className="mt-2 text-sm leading-snug text-muted">{s.u}</p>
+          </Reveal>
         ))}
       </div>
     </section>
   );
 }
 
-/* ----------------------------------------------------------- How it works */
+/* ============================================================ Features (Bento — varied tile sizes, custom SVG icons) */
+function Features() {
+  return (
+    <section id="features" className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+      <Reveal className="max-w-2xl">
+        <p className="eyebrow">Lo que hace</p>
+        <h2 className="font-display mt-3 font-semibold tracking-tight" style={{ fontSize: "var(--text-h2)" }}>
+          Un dictador que vive donde ya trabajas.
+        </h2>
+      </Reveal>
+
+      <div className="mt-12 grid auto-rows-[180px] gap-5 md:grid-cols-3">
+        {/* wide feature */}
+        <Reveal as="article" className="bento md:col-span-2 md:row-span-1">
+          <WindowIcon />
+          <div>
+            <h3 className="bento-title">Funciona en cualquier app</h3>
+            <p className="bento-body">
+              Notepad, Chrome, Slack, Word, tu terminal. Si tiene un campo de texto,
+              KeyLess Flow escribe ahí — vía paste nativo, no macros frágiles.
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal as="article" i={1} className="bento">
+          <KeyIcon />
+          <div>
+            <h3 className="bento-title">Hotkeys a tu gusto</h3>
+            <p className="bento-body">Ctrl+Alt para mantener-y-hablar, o doble Ctrl manos libres.</p>
+          </div>
+        </Reveal>
+
+        <Reveal as="article" i={2} className="bento">
+          <GlobeIcon />
+          <div>
+            <h3 className="bento-title">Multilenguaje real</h3>
+            <p className="bento-body">Español, inglés, portugués, francés y 90+ idiomas de Whisper.</p>
+          </div>
+        </Reveal>
+
+        <Reveal as="article" i={3} className="bento">
+          <CommandIcon />
+          <div>
+            <h3 className="bento-title">Comandos por voz</h3>
+            <p className="bento-body">&ldquo;Nueva línea&rdquo;, &ldquo;coma&rdquo;, &ldquo;punto&rdquo; se vuelven formato real.</p>
+          </div>
+        </Reveal>
+
+        {/* tall/wide feature */}
+        <Reveal as="article" i={4} className="bento md:row-span-1">
+          <ShieldIcon />
+          <div>
+            <h3 className="bento-title">Tu data, tu control</h3>
+            <p className="bento-body">
+              El plan Free corre 100% en tu máquina. Historial en SQLite local,
+              dashboard web para buscar y re-pegar transcripciones pasadas.
+            </p>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================ How it works (numbered + connecting rule) */
 function HowItWorks() {
   const steps = [
-    { n: "01", title: "Descarga e instala", body: "Un .exe de 40 MB. Doble click, listo." },
-    { n: "02", title: "Pega tu Groq API key", body: "Gratis en console.groq.com/keys. O suscríbete al plan Pro y olvídate del setup." },
-    { n: "03", title: "Mantén Ctrl+Alt y habla", body: "El texto aparece donde tu cursor está. En cualquier app." },
+    { n: "01", title: "Descarga e instala", body: "Un .exe de 40 MB. Doble click y listo — sin Python, sin terminal." },
+    { n: "02", title: "Pega tu Groq API key", body: "Gratis en console.groq.com/keys. O suscríbete a Pro y olvídate del setup." },
+    { n: "03", title: "Mantén Ctrl+Alt y habla", body: "El texto aparece donde está tu cursor. En cualquier app, al instante." },
   ];
-
   return (
-    <section className="border-y border-[var(--border)] bg-[var(--surface)]/40">
-      <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
-        <div className="max-w-2xl">
-          <p className="text-sm font-medium text-brand-teal">Cómo funciona</p>
-          <h2 className="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">
-            De cero a dictando en menos de 2 minutos.
+    <section className="border-y border-border bg-bg-band">
+      <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+        <Reveal className="max-w-2xl">
+          <p className="eyebrow">Cómo funciona</p>
+          <h2 className="font-display mt-3 font-semibold tracking-tight" style={{ fontSize: "var(--text-h2)" }}>
+            De cero a dictando en menos de dos minutos.
           </h2>
-        </div>
-        <div className="mt-14 grid gap-8 md:grid-cols-3">
-          {steps.map((step) => (
-            <div key={step.n}>
-              <div className="font-mono text-sm text-brand-teal">{step.n}</div>
-              <h3 className="mt-3 text-xl font-semibold">{step.title}</h3>
-              <p className="mt-2 text-[var(--muted)]">{step.body}</p>
-            </div>
+        </Reveal>
+        <div className="mt-14 grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
+          {steps.map((s, idx) => (
+            <Reveal as="div" i={idx} key={s.n} className="bg-bg-band p-7">
+              <div className="font-mono text-sm text-accent">{s.n}</div>
+              <h3 className="font-display mt-4 text-xl font-semibold">{s.title}</h3>
+              <p className="mt-2 leading-relaxed text-muted">{s.body}</p>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -230,254 +294,340 @@ function HowItWorks() {
   );
 }
 
-/* -------------------------------------------------------------- Pricing */
-function Pricing() {
+/* ============================================================ Compare (honest, sourced cost claim) */
+function Compare() {
   return (
-    <section id="pricing" className="mx-auto max-w-6xl px-6 py-24 md:py-32">
-      <div className="text-center">
-        <p className="text-sm font-medium text-brand-teal">Pricing</p>
-        <h2 className="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">
-          Pagas hasta <span className="brand-text-gradient">25× menos</span> que Wispr Flow.
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-[var(--muted)]">
-          O cero — si trazes tu propia Groq API key.
-        </p>
+    <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+      <div className="grid items-center gap-12 md:grid-cols-2">
+        <Reveal>
+          <p className="eyebrow">El número que importa</p>
+          <h2 className="font-display mt-3 font-semibold leading-tight tracking-tight" style={{ fontSize: "var(--text-h2)" }}>
+            Hasta <span className="mark">25× menos</span> que una suscripción de dictado.
+          </h2>
+          <p className="mt-5 max-w-md leading-relaxed text-muted">
+            Wispr Flow cobra <strong className="text-fg">$15/mes</strong>. KeyLess Flow Free usa tu
+            propia Groq key a <strong className="text-fg">~$0.04/hora</strong> de audio — para un uso
+            normal, eso es <strong className="text-fg">~$0.60 al mes</strong>. La cuenta da 25×.
+          </p>
+        </Reveal>
+        <Reveal i={1} className="grid gap-4">
+          <div className="rounded-lg border border-border bg-surface p-5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-muted">Wispr Flow</span>
+              <span className="font-display text-2xl font-semibold">$15<span className="text-base text-faint">/mes</span></span>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-surface-2">
+              <div className="h-full w-full rounded-full bg-faint" />
+            </div>
+          </div>
+          <div className="rounded-lg border border-accent/40 bg-surface p-5 shadow-[0_24px_60px_-34px_oklch(0.83_0.13_184_/_0.6)]">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-fg">KeyLess Flow Free (BYOK)</span>
+              <span className="font-display text-2xl font-semibold">~$0.60<span className="text-base text-faint">/mes</span></span>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-surface-2">
+              <div className="h-full rounded-full bg-accent" style={{ width: "4%" }} />
+            </div>
+          </div>
+        </Reveal>
       </div>
-      <div className="mx-auto mt-14 grid max-w-5xl gap-6 md:grid-cols-3">
-        {/* Free */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8">
-          <h3 className="text-lg font-semibold">Free</h3>
-          <p className="mt-2 text-sm text-[var(--muted)]">Para devs y power users.</p>
-          <div className="mt-6">
-            <span className="text-5xl font-semibold">$0</span>
-            <span className="ml-2 text-[var(--muted)]">/ siempre</span>
-          </div>
-          <a
-            href="#download"
-            className="mt-6 block rounded-full border border-[var(--border)] py-3 text-center text-sm font-medium transition hover:bg-[var(--surface-2)]"
-          >
-            Descargar
-          </a>
-          <ul className="mt-8 space-y-3 text-sm">
-            {[
-              "Dictado ilimitado",
-              "Trae tu Groq API key (~$0.60/mes)",
-              "100% local, sin login",
-              "Open source · MIT",
-            ].map((f) => (
-              <li key={f} className="flex items-start gap-2">
-                <span className="brand-text-gradient mt-0.5">✓</span>
-                <span className="text-[var(--muted)]">{f}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Pro */}
-        <div className="relative rounded-2xl border border-brand-teal/40 bg-[var(--surface)] p-8 shadow-[0_24px_64px_-32px_rgba(63,177,224,0.5)]">
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 brand-gradient rounded-full px-3 py-1 text-xs font-semibold text-[var(--brand-navy)]">
-            Más popular
-          </span>
-          <h3 className="text-lg font-semibold">Pro</h3>
-          <p className="mt-2 text-sm text-[var(--muted)]">Sin setup, sin API keys.</p>
-          <div className="mt-6">
-            <span className="text-5xl font-semibold">$9.99</span>
-            <span className="ml-2 text-[var(--muted)]">/ mes</span>
-          </div>
-          <a
-            href="/signup?plan=pro"
-            className="brand-gradient mt-6 block rounded-full py-3 text-center text-sm font-semibold text-[var(--brand-navy)] transition hover:opacity-95"
-          >
-            Empezar Pro
-          </a>
-          <ul className="mt-8 space-y-3 text-sm">
-            {[
-              "Dictado ilimitado (50h soft cap)",
-              "Sin API keys — login y listo",
-              "Cloud sync de historial (próximamente)",
-              "Soporte prioritario",
-              "Cancelas cuando quieras",
-            ].map((f) => (
-              <li key={f} className="flex items-start gap-2">
-                <span className="brand-text-gradient mt-0.5">✓</span>
-                <span className="text-[var(--muted)]">{f}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Enterprise */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8">
-          <h3 className="text-lg font-semibold">Team</h3>
-          <p className="mt-2 text-sm text-[var(--muted)]">Para equipos pequeños.</p>
-          <div className="mt-6">
-            <span className="text-5xl font-semibold">$29</span>
-            <span className="ml-2 text-[var(--muted)]">/ mes · 5 usuarios</span>
-          </div>
-          <a
-            href="mailto:hello@sinsajocreators.com?subject=KeyLess%20Flow%20Team"
-            className="mt-6 block rounded-full border border-[var(--border)] py-3 text-center text-sm font-medium transition hover:bg-[var(--surface-2)]"
-          >
-            Contactar
-          </a>
-          <ul className="mt-8 space-y-3 text-sm">
-            {[
-              "Todo lo de Pro",
-              "Hasta 5 usuarios",
-              "Diccionario compartido del equipo",
-              "Facturación centralizada",
-              "Onboarding 1-a-1",
-            ].map((f) => (
-              <li key={f} className="flex items-start gap-2">
-                <span className="brand-text-gradient mt-0.5">✓</span>
-                <span className="text-[var(--muted)]">{f}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <p className="mt-10 text-center text-sm text-[var(--muted)]">
-        ¿Curioso del costo real? Wispr Flow cobra <span className="text-foreground">$15/mes</span> ·
-        Groq cobra <span className="text-foreground">$0.04/hora</span> de audio · KeyLess Flow Pro te
-        cubre <span className="text-foreground">~50 horas/mes</span>.
-      </p>
     </section>
   );
 }
 
-/* --------------------------------------------------------------- FAQ */
+/* ============================================================ Pricing */
+function Pricing() {
+  return (
+    <section id="precios" className="border-y border-border bg-bg-band">
+      <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+        <Reveal className="max-w-2xl">
+          <p className="eyebrow">Precios</p>
+          <h2 className="font-display mt-3 font-semibold tracking-tight" style={{ fontSize: "var(--text-h2)" }}>
+            Empieza gratis. Sube a Pro cuando quieras dejar de configurar.
+          </h2>
+        </Reveal>
+
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
+          <Reveal as="div">
+            <PlanCard
+              name="Free"
+              tagline="Para devs y power users."
+              price="$0"
+              unit="/ siempre"
+              cta="Descargar"
+              href="#download"
+              variant="ghost"
+              features={[
+                "Dictado ilimitado",
+                "Trae tu Groq API key (~$0.60/mes)",
+                "100% local, sin login",
+                "Open source · MIT",
+              ]}
+            />
+          </Reveal>
+          <Reveal as="div" i={1}>
+            <PlanCard
+              name="Pro"
+              tagline="Sin setup, sin API keys."
+              price="$9.99"
+              unit="/ mes"
+              cta="Empezar Pro"
+              href="/signup?plan=pro"
+              variant="primary"
+              badge="Más popular"
+              features={[
+                "Dictado ilimitado (50h soft cap)",
+                "Sin API keys — login y listo",
+                "Cloud sync de historial (pronto)",
+                "Soporte prioritario",
+                "Cancelas cuando quieras",
+              ]}
+            />
+          </Reveal>
+          <Reveal as="div" i={2}>
+            <PlanCard
+              name="Team"
+              tagline="Para equipos pequeños."
+              price="$29"
+              unit="/ mes · 5 usuarios"
+              cta="Contactar"
+              href="mailto:hello@sinsajocreators.com?subject=KeyLess%20Flow%20Team"
+              variant="ghost"
+              features={[
+                "Todo lo de Pro",
+                "Hasta 5 usuarios",
+                "Diccionario compartido del equipo",
+                "Facturación centralizada",
+                "Onboarding 1-a-1",
+              ]}
+            />
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PlanCard({
+  name, tagline, price, unit, cta, href, variant, badge, features,
+}: {
+  name: string; tagline: string; price: string; unit: string;
+  cta: string; href: string; variant: "primary" | "ghost"; badge?: string;
+  features: string[];
+}) {
+  const isPrimary = variant === "primary";
+  return (
+    <div
+      className={`relative flex h-full flex-col rounded-lg border p-8 ${
+        isPrimary
+          ? "border-accent/40 bg-surface shadow-[0_30px_70px_-40px_oklch(0.83_0.13_184_/_0.6)]"
+          : "border-border bg-surface"
+      }`}
+    >
+      {badge && (
+        <span className="absolute -top-3 left-8 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-ink">
+          {badge}
+        </span>
+      )}
+      <h3 className="font-display text-lg font-semibold">{name}</h3>
+      <p className="mt-1.5 text-sm text-muted">{tagline}</p>
+      <div className="mt-6 flex items-baseline gap-2">
+        <span className="font-display text-5xl font-semibold tracking-tight">{price}</span>
+        <span className="text-sm text-faint">{unit}</span>
+      </div>
+      <a href={href} className={`mt-7 text-center ${isPrimary ? "btn-primary" : "btn-ghost"}`}>
+        {cta}
+      </a>
+      <ul className="mt-8 space-y-3 text-sm">
+        {features.map((f) => (
+          <li key={f} className="flex items-start gap-2.5">
+            <CheckIcon />
+            <span className="text-muted">{f}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ============================================================ FAQ */
 function FAQ() {
   const qa = [
     {
-      q: "¿Mi audio se almacena en algún servidor?",
-      a: "En el plan Free: no, todo corre local — el audio se sube directamente de tu máquina a Groq Whisper y se descarta. En el plan Pro: tampoco — nuestro backend proxy NO persiste audio, solo lo reenvía a Groq y registra el conteo de minutos para tu cuota.",
+      q: "¿Mi audio se guarda en algún servidor?",
+      a: "En Free: no — el audio va directo de tu máquina a Groq Whisper y se descarta. En Pro: tampoco — nuestro proxy reenvía a Groq y solo registra el conteo de minutos para tu cuota, nunca el audio.",
     },
     {
       q: "¿Funciona offline?",
-      a: "El plan Free necesita internet porque usa Groq Whisper (cloud). Un modo local con mlx-whisper / faster-whisper está en roadmap para 2026.",
+      a: "Free necesita internet porque usa Groq Whisper (cloud). Un modo 100% local con mlx-whisper / faster-whisper está en el roadmap 2026.",
     },
     {
-      q: "¿Por qué Windows primero si el proyecto original era de Mac?",
-      a: "Sinsajo Creators ports the upstream macOS-only sflow to Windows. La validación de Mac viene después del MVP Windows + monetización.",
+      q: "¿Por qué Windows primero si el original era de Mac?",
+      a: "Sinsajo Creators porta el sflow original (solo-macOS) a Windows. La validación de Mac viene después del MVP de Windows.",
     },
     {
       q: "¿Qué pasa con mis transcripciones si cancelo Pro?",
-      a: "El historial local en tu máquina sigue intacto para siempre. Si activamos cloud sync, exportamos tu data antes de cerrar la cuenta.",
+      a: "El historial local en tu máquina queda intacto para siempre. Si activamos cloud sync, exportamos tu data antes de cerrar la cuenta.",
     },
     {
       q: "¿Puedo hostearlo yo mismo?",
-      a: "Sí — es open source (MIT). El repo está en github.com/lsomarribaprojects/KeyLess-Flow. Trae tu Groq key, corre el .exe y listo.",
+      a: "Sí — es open source (MIT). Trae tu Groq key, corre el .exe y listo.",
     },
   ];
-
   return (
-    <section id="faq" className="border-y border-[var(--border)] bg-[var(--surface)]/40">
-      <div className="mx-auto max-w-3xl px-6 py-24 md:py-32">
-        <div className="text-center">
-          <p className="text-sm font-medium text-brand-teal">FAQ</p>
-          <h2 className="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">
-            Preguntas frecuentes
-          </h2>
-        </div>
-        <div className="mt-12 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
-          {qa.map((item) => (
-            <details key={item.q} className="group p-6">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium">
-                {item.q}
-                <span className="text-[var(--muted)] transition group-open:rotate-45">+</span>
-              </summary>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{item.a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
+    <section id="faq" className="mx-auto max-w-3xl px-6 py-20 md:py-28">
+      <Reveal>
+        <p className="eyebrow">FAQ</p>
+        <h2 className="font-display mt-3 font-semibold tracking-tight" style={{ fontSize: "var(--text-h2)" }}>
+          Preguntas frecuentes
+        </h2>
+      </Reveal>
+      <Reveal i={1} className="mt-10 divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface">
+        {qa.map((item) => (
+          <details key={item.q} className="group p-6">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium">
+              {item.q}
+              <span className="shrink-0 text-muted transition-transform duration-200 ease-out group-open:rotate-45">
+                <PlusIcon />
+              </span>
+            </summary>
+            <p className="mt-3 leading-relaxed text-muted">{item.a}</p>
+          </details>
+        ))}
+      </Reveal>
     </section>
   );
 }
 
-/* ----------------------------------------------------------- Final CTA */
+/* ============================================================ Final CTA */
 function FinalCTA() {
   return (
-    <section id="download" className="mx-auto max-w-4xl px-6 py-24 text-center md:py-32">
-      <h2 className="text-4xl font-semibold tracking-tight md:text-5xl">
-        Tu próximo dictador <span className="brand-text-gradient">está a un click</span>.
-      </h2>
-      <p className="mx-auto mt-4 max-w-xl text-lg text-[var(--muted)]">
-        Descarga el instalador para Windows. 40 MB. Sin Python, sin terminal, sin drama.
-      </p>
-      <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <a
-          href="https://github.com/lsomarribaprojects/KeyLess-Flow/releases/latest"
-          className="brand-gradient rounded-full px-8 py-4 text-base font-semibold text-[var(--brand-navy)] shadow-[0_8px_32px_-8px_rgba(63,177,224,0.5)] transition hover:scale-[1.02]"
-        >
-          ↓ Descargar para Windows
-        </a>
-        <span className="text-xs text-[var(--muted)]">
-          macOS próximamente · Linux on demand
-        </span>
+    <section id="download" className="border-t border-border">
+      <div className="mx-auto max-w-4xl px-6 py-24 text-center md:py-32">
+        <Reveal>
+          <h2 className="font-display font-semibold leading-[1.04] tracking-tight" style={{ fontSize: "var(--text-display-s)" }}>
+            Tu próximo dictador está a <span className="mark">un click</span>.
+          </h2>
+          <p className="mx-auto mt-5 max-w-md leading-relaxed text-muted">
+            Instalador para Windows. 40 MB. Sin Python, sin terminal, sin drama.
+          </p>
+          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Magnetic>
+              <a href={`${REPO}/releases/latest`} className="btn-primary">
+                <DownloadIcon /> Descargar para Windows
+              </a>
+            </Magnetic>
+            <span className="font-mono text-xs text-faint">macOS pronto · Linux on demand</span>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
 }
 
-/* -------------------------------------------------------------- Footer */
+/* ============================================================ Footer (Ft: statement, not 4-column grid) */
 function Footer() {
   return (
-    <footer className="border-t border-[var(--border)]">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="flex flex-col items-center justify-between gap-6 md:flex-row md:items-start">
-          <div className="flex items-center gap-2.5">
-            <Image
-              src="/brand/hummingbird.png"
-              alt="Sinsajo Creators"
-              width={24}
-              height={24}
-            />
-            <span className="text-sm text-[var(--muted)]">
-              KeyLess Flow · por{" "}
-              <a
-                href="https://github.com/lsomarribaprojects"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground hover:underline"
-              >
+    <footer className="border-t border-border bg-bg-band">
+      <div className="mx-auto max-w-6xl px-6 py-14">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <Image src="/brand/hummingbird.png" alt="" width={26} height={26} />
+              <span className="font-display text-lg font-semibold">KeyLess Flow</span>
+            </div>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
+              Dictado por voz que aparece donde escribes. Por{" "}
+              <a href="https://github.com/lsomarribaprojects" target="_blank" rel="noopener noreferrer" className="text-fg hover:underline">
                 Sinsajo Creators
-              </a>
-            </span>
+              </a>.
+            </p>
           </div>
-          <div className="flex items-center gap-6 text-sm text-[var(--muted)]">
-            <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
-            <a href="#faq" className="hover:text-foreground transition">FAQ</a>
-            <a
-              href="https://github.com/lsomarribaprojects/KeyLess-Flow"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition"
-            >
-              GitHub
-            </a>
-            <a href="/legal/privacy" className="hover:text-foreground transition">
-              Privacy
-            </a>
-            <a href="/legal/terms" className="hover:text-foreground transition">
-              Terms
-            </a>
-          </div>
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted">
+            <a href="#precios" className="transition-colors duration-150 hover:text-fg">Precios</a>
+            <a href="#faq" className="transition-colors duration-150 hover:text-fg">FAQ</a>
+            <a href={REPO} target="_blank" rel="noopener noreferrer" className="transition-colors duration-150 hover:text-fg">GitHub</a>
+            <a href="/legal/privacy" className="transition-colors duration-150 hover:text-fg">Privacidad</a>
+            <a href="/legal/terms" className="transition-colors duration-150 hover:text-fg">Términos</a>
+          </nav>
         </div>
-        <p className="mt-8 text-center text-xs text-[var(--muted)] md:text-left">
-          © 2026 Sinsajo Creators · Forked from{" "}
-          <a
-            href="https://github.com/daniel-carreon/sflow"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground transition"
-          >
+        <p className="mt-10 border-t border-border pt-6 font-mono text-xs text-faint">
+          © 2026 Sinsajo Creators · fork de{" "}
+          <a href="https://github.com/daniel-carreon/sflow" target="_blank" rel="noopener noreferrer" className="hover:text-muted">
             daniel-carreon/sflow
           </a>{" "}
-          · MIT License
+          · MIT
         </p>
       </div>
     </footer>
+  );
+}
+
+/* ============================================================ Icons (one consistent stroke set — no emoji, no mixed libs) */
+function GitHubIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.3.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5Z" />
+    </svg>
+  );
+}
+function DownloadIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
+  );
+}
+function CheckIcon() {
+  return (
+    <svg className="mt-0.5 shrink-0 text-accent" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="m20 6-11 11-5-5" />
+    </svg>
+  );
+}
+function PlusIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+function WindowIcon() {
+  return (
+    <svg className="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 9h18M7 6.5h.01M10 6.5h.01" />
+    </svg>
+  );
+}
+function KeyIcon() {
+  return (
+    <svg className="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="2.5" y="6" width="19" height="12" rx="2" />
+      <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8" />
+    </svg>
+  );
+}
+function GlobeIcon() {
+  return (
+    <svg className="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" />
+    </svg>
+  );
+}
+function CommandIcon() {
+  return (
+    <svg className="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9 6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6Z" />
+    </svg>
+  );
+}
+function ShieldIcon() {
+  return (
+    <svg className="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3 5 6v5c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6l-7-3Z" />
+      <path d="m9.5 12 1.8 1.8L15 10" />
+    </svg>
   );
 }

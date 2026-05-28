@@ -1,57 +1,270 @@
+/* Hallmark · macrostructure: Stat-Led + Bento · tone: technical · anchor hue: cool-teal
+ * pre-emit critique: P5 H5 E5 S4 R5 V5
+ * tokens locked at :root — no inline hex/oklch/font mid-render */
 @import "tailwindcss";
 
 :root {
-  /* Sinsajo brand — sampled from the hummingbird gradient */
-  --brand-teal: #3dd3c4;
-  --brand-blue: #3fb1e0;
-  --brand-navy: #243b6b;
+  /* ---- Palette (OKLCH; brand sampled from the Sinsajo hummingbird) ---- */
+  --bg:          oklch(0.12 0.015 260);
+  --bg-band:     oklch(0.15 0.018 262);
+  --surface:     oklch(0.17 0.02 262);
+  --surface-2:   oklch(0.22 0.028 264);
+  --fg:          oklch(0.97 0.004 250);
+  --muted:       oklch(0.69 0.018 258);
+  --faint:       oklch(0.55 0.016 258);
+  --border:      oklch(0.97 0.004 250 / 0.09);
+  --border-2:    oklch(0.97 0.004 250 / 0.16);
 
-  /* Surface — dark by default to make the gradient pop */
-  --background: #07090f;
-  --foreground: #f4f5f7;
-  --surface: #0e1320;
-  --surface-2: #161c2e;
-  --border: rgba(255, 255, 255, 0.08);
-  --muted: #8a93a6;
+  --accent:      oklch(0.83 0.13 184);   /* teal  */
+  --accent-2:    oklch(0.72 0.12 233);   /* blue  */
+  --accent-ink:  oklch(0.26 0.06 262);   /* readable text on an accent fill */
+  --accent-soft: oklch(0.83 0.13 184 / 0.12);
+
+  /* ---- Spacing (4pt scale, semantic) ---- */
+  --space-2xs: 0.25rem;
+  --space-xs:  0.5rem;
+  --space-sm:  0.75rem;
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 9rem;
+
+  /* ---- Type scale (display steps by length, per Hallmark) ---- */
+  --text-display:   clamp(2.75rem, 6.5vw, 5.25rem);
+  --text-display-s: clamp(2.25rem, 4.5vw, 3.5rem);
+  --text-h2:        clamp(1.9rem, 3.4vw, 2.9rem);
+
+  /* ---- Radii ---- */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.375rem;
+  --radius-full: 999px;
+
+  /* ---- Motion (transform/opacity only; named easings) ---- */
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long:  420ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --rule: 1px solid var(--border);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-bg-band: var(--bg-band);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
-  --color-border: var(--border);
+  --color-fg: var(--fg);
   --color-muted: var(--muted);
-  --color-brand-teal: var(--brand-teal);
-  --color-brand-blue: var(--brand-blue);
-  --color-brand-navy: var(--brand-navy);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-faint: var(--faint);
+  --color-border: var(--border);
+  --color-border-2: var(--border-2);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-ink: var(--accent-ink);
+
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Display face — plain utility (avoids a self-referential @theme token) */
+.font-display {
+  font-family: var(--font-display), "Geist", system-ui, sans-serif;
+}
+
+html, body {
+  overflow-x: clip;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Brand gradient — reusable as a text fill or background */
-.brand-gradient {
-  background: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-blue) 100%);
+/* Display headers must survive long words on mobile */
+h1, h2, h3 {
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
-.brand-text-gradient {
-  background: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-blue) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* ---------------------------------------------------- Accent (used <5% area) */
+.eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
-/* Subtle radial spotlight behind hero — uses brand colours at 6% opacity */
-.hero-glow {
-  background:
-    radial-gradient(60% 50% at 50% 0%, rgba(63, 177, 224, 0.18) 0%, transparent 70%),
-    radial-gradient(40% 40% at 80% 30%, rgba(61, 211, 196, 0.12) 0%, transparent 60%);
+/* A hand-drawn-feeling underline that sits at the x-height, not the baseline */
+.mark {
+  position: relative;
+  white-space: nowrap;
+}
+.mark::after {
+  content: "";
+  position: absolute;
+  left: -0.04em;
+  right: -0.04em;
+  bottom: 0.06em;
+  height: 0.34em;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  opacity: 0.28;
+  border-radius: 2px;
+  z-index: -1;
+}
+
+/* ---------------------------------------------------- Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity var(--dur-long) var(--ease-out),
+    transform var(--dur-long) var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 60ms);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------------------------------------------------- Hero waveform motif */
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+}
+.wave > i {
+  display: block;
+  width: 5px;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  transform: scaleY(0.22);
+  transform-origin: center;
+  animation: bar 1100ms var(--ease-in-out) infinite;
+}
+@keyframes bar {
+  0%, 100% { transform: scaleY(0.22); }
+  50%      { transform: scaleY(1); }
+}
+
+/* live dot */
+.live-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: ping 1600ms var(--ease-out) infinite;
+}
+@keyframes ping {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  70%  { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* ---------------------------------------------------- Buttons (full state set) */
+.btn-primary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-full);
+  padding: 0.72rem 1.4rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform var(--dur-short) var(--ease-out),
+    background-color var(--dur-short) var(--ease-out),
+    border-color var(--dur-short) var(--ease-out),
+    opacity var(--dur-short) var(--ease-out);
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.btn-primary:hover  { background: color-mix(in oklab, var(--accent), white 9%); transform: translateY(-1.5px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-ghost {
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--fg);
+}
+.btn-ghost:hover  { background: var(--surface-2); transform: translateY(-1.5px); }
+.btn-ghost:active { transform: translateY(0); }
+
+.btn-primary:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;   /* appears instantly — never animated */
+}
+.btn-primary[aria-disabled="true"],
+.btn-ghost[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---------------------------------------------------- Bento feature tiles */
+.bento {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: var(--space-lg);
+  transition:
+    border-color var(--dur-short) var(--ease-out),
+    transform var(--dur-short) var(--ease-out);
+}
+.bento:hover {
+  border-color: oklch(0.83 0.13 184 / 0.35);
+  transform: translateY(-2px);
+}
+.feat-icon { width: 30px; height: 30px; color: var(--accent); }
+.bento-title {
+  font-family: var(--font-display), "Geist", system-ui, sans-serif;
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+.bento-body {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------- Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transition-duration: 150ms;
+    transform: none;
+  }
+  .wave > i { animation: none; transform: scaleY(0.6); }
+  .live-dot::after { animation: none; opacity: 0; }
+  *, *::before, *::after {
+    animation-duration: 150ms !important;
+    transition-duration: 150ms !important;
+  }
 }
