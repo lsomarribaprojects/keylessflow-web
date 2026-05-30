@@ -98,12 +98,12 @@ function Hero() {
           </h1>
           <p className="mt-7 max-w-md text-lg leading-relaxed text-muted">
             Mantén un hotkey, dicta, suelta. El texto cae exacto donde está tu cursor —
-            en Notepad, Chrome, Slack o VS&nbsp;Code. Sin mensualidad.
+            en Notepad, Chrome, Slack o VS&nbsp;Code.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Magnetic>
-              <a href="#download" className="btn-primary">
-                <DownloadIcon /> Descargar para Windows
+              <a href="/signup?plan=free" className="btn-primary">
+                Empezar gratis 30 días
               </a>
             </Magnetic>
             <Magnetic strength={0.18}>
@@ -113,7 +113,7 @@ function Hero() {
             </Magnetic>
           </div>
           <p className="mt-5 font-mono text-xs text-faint">
-            gratis con tu propia Groq API key · sin tarjeta
+            8h de dictado gratis · sin tarjeta · 9× más que Wispr Flow
           </p>
         </Reveal>
 
@@ -179,8 +179,8 @@ function TrustBand() {
 function Stats() {
   const stats: { node: React.ReactNode; u: string }[] = [
     {
-      node: <Counter to={0.6} decimals={2} prefix="~$" />,
-      u: "/ mes con tu Groq key (aprox.)",
+      node: <Counter to={8} suffix="h" />,
+      u: "dictado gratis / mes · 9× más que Wispr Flow",
     },
     { node: <Counter to={40} suffix=" MB" />, u: "instalador · sin Python ni terminal" },
     { node: <Counter to={90} suffix="+" />, u: "idiomas vía Whisper" },
@@ -300,34 +300,36 @@ function Compare() {
     <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
       <div className="grid items-center gap-12 md:grid-cols-2">
         <Reveal>
-          <p className="eyebrow">El número que importa</p>
+          <p className="eyebrow">Comparativa Free vs Free</p>
           <h2 className="font-display mt-3 font-semibold leading-tight tracking-tight" style={{ fontSize: "var(--text-h2)" }}>
-            Hasta <span className="mark">25× menos</span> que una suscripción de dictado.
+            <span className="mark">9×</span> más dictado gratis que Wispr Flow.
           </h2>
           <p className="mt-5 max-w-md leading-relaxed text-muted">
-            Wispr Flow cobra <strong className="text-fg">$15/mes</strong>. KeyLess Flow Free usa tu
-            propia Groq key a <strong className="text-fg">~$0.04/hora</strong> de audio — para un uso
-            normal, eso es <strong className="text-fg">~$0.60 al mes</strong>. La cuenta da 25×.
+            Wispr Flow Free te limita a <strong className="text-fg">~3.5 horas/mes</strong> y bloquea
+            las AI Commands. KeyLess Flow Free Trial te da <strong className="text-fg">8 horas/mes</strong>{" "}
+            con TODAS las features de Pro durante 30 días — sin tarjeta.
           </p>
         </Reveal>
         <Reveal i={1} className="grid gap-4">
           <div className="rounded-lg border border-border bg-surface p-5">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-muted">Wispr Flow</span>
-              <span className="font-display text-2xl font-semibold">$15<span className="text-base text-faint">/mes</span></span>
+              <span className="text-sm text-muted">Wispr Flow Free</span>
+              <span className="font-display text-2xl font-semibold">3.5h<span className="text-base text-faint">/mes</span></span>
             </div>
             <div className="mt-3 h-2 rounded-full bg-surface-2">
-              <div className="h-full w-full rounded-full bg-faint" />
+              <div className="h-full rounded-full bg-faint" style={{ width: "11%" }} />
             </div>
+            <p className="mt-2 font-mono text-[0.7rem] text-faint">2,000 palabras/sem · sin AI Commands</p>
           </div>
           <div className="rounded-lg border border-accent/40 bg-surface p-5 shadow-[0_24px_60px_-34px_oklch(0.83_0.13_184_/_0.6)]">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-fg">KeyLess Flow Free (BYOK)</span>
-              <span className="font-display text-2xl font-semibold">~$0.60<span className="text-base text-faint">/mes</span></span>
+              <span className="text-sm text-fg">KeyLess Flow Free Trial</span>
+              <span className="font-display text-2xl font-semibold">8h<span className="text-base text-faint">/mes</span></span>
             </div>
             <div className="mt-3 h-2 rounded-full bg-surface-2">
-              <div className="h-full rounded-full bg-accent" style={{ width: "4%" }} />
+              <div className="h-full rounded-full bg-accent" style={{ width: "100%" }} />
             </div>
+            <p className="mt-2 font-mono text-[0.7rem] text-faint">~72,000 palabras/mes · AI Commands incluidos</p>
           </div>
         </Reveal>
       </div>
@@ -347,38 +349,36 @@ function Pricing() {
           </h2>
         </Reveal>
 
-        <div className="mt-12 grid gap-5 lg:grid-cols-3">
+        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           <Reveal as="div">
             <PlanCard
-              name="Free"
-              tagline="Para devs y power users."
+              name="Free Trial"
+              tagline="Para probarlo en serio."
               price="$0"
-              unit="/ siempre"
-              cta="Descargar"
-              href="#download"
+              unit="/ 30 días"
+              cta="Empezar gratis"
+              href="/signup?plan=free"
               variant="ghost"
               features={[
-                "Dictado ilimitado",
-                "Trae tu Groq API key (~$0.60/mes)",
-                "100% local, sin login",
-                "Open source · MIT",
+                "8 horas de dictado al mes",
+                "Todas las features de Pro",
+                "Sin tarjeta de crédito",
+                "9× más que Wispr Flow Free",
               ]}
             />
           </Reveal>
           <Reveal as="div" i={1}>
             <PlanCard
-              name="Pro"
-              tagline="Sin setup, sin API keys."
+              name="Pro Mensual"
+              tagline="Flexibilidad mes a mes."
               price="$9.99"
               unit="/ mes"
-              cta="Empezar Pro"
-              href="/signup?plan=pro"
-              variant="primary"
-              badge="Más popular"
+              cta="Suscribirme"
+              href="/signup?plan=pro_monthly"
+              variant="ghost"
               features={[
                 "Dictado ilimitado (50h soft cap)",
-                "Sin API keys — login y listo",
-                "Cloud sync de historial (pronto)",
+                "Sin API keys, login y listo",
                 "Soporte prioritario",
                 "Cancelas cuando quieras",
               ]}
@@ -386,23 +386,44 @@ function Pricing() {
           </Reveal>
           <Reveal as="div" i={2}>
             <PlanCard
+              name="Pro Anual"
+              tagline="$6.58 efectivo al mes."
+              price="$79"
+              unit="/ año"
+              cta="Mejor valor"
+              href="/signup?plan=pro_annual"
+              variant="primary"
+              badge="34% off · Recomendado"
+              features={[
+                "Todo lo de Pro Mensual",
+                "Ahorra $41 vs mensual",
+                "Cloud sync de historial (pronto)",
+                "Locked-in price (sin subidas)",
+                "Cancelas cuando quieras",
+              ]}
+            />
+          </Reveal>
+          <Reveal as="div" i={3}>
+            <PlanCard
               name="Team"
               tagline="Para equipos pequeños."
               price="$29"
-              unit="/ mes · 5 usuarios"
+              unit="/ mes · 5 users"
               cta="Contactar"
               href="mailto:hello@sinsajocreators.com?subject=KeyLess%20Flow%20Team"
               variant="ghost"
               features={[
-                "Todo lo de Pro",
+                "Todo lo de Pro Anual",
                 "Hasta 5 usuarios",
-                "Diccionario compartido del equipo",
+                "Diccionario del equipo",
                 "Facturación centralizada",
-                "Onboarding 1-a-1",
               ]}
             />
           </Reveal>
         </div>
+        <p className="mt-8 text-center font-mono text-xs text-faint">
+          ¿Probaste el trial y aún no estás listo? Te mandamos un cupón de <strong className="text-fg">50% off</strong> al final del mes para que sigas a $4.99 tu primer mes pagado.
+        </p>
       </div>
     </section>
   );
@@ -454,24 +475,32 @@ function PlanCard({
 function FAQ() {
   const qa = [
     {
+      q: "¿Qué pasa después de los 30 días gratis?",
+      a: "Al día 25 te llegará un email con un cupón de 50% off — si decides quedarte, tu primer mes Pro es $4.99 (en vez de $9.99). Si no actúas, la app deja de transcribir hasta que te suscribas. Cero cargos automáticos sorpresa.",
+    },
+    {
+      q: "¿Cuánto es 8 horas de dictado realmente?",
+      a: "A ritmo conversacional son ~72,000 palabras al mes — aprox. 240 emails largos, 8 reuniones documentadas, o 60 sesiones de brainstorm. Wispr Flow Free apenas te da 8,000 palabras al mes; nosotros 9× más.",
+    },
+    {
       q: "¿Mi audio se guarda en algún servidor?",
-      a: "En Free: no — el audio va directo de tu máquina a Groq Whisper y se descarta. En Pro: tampoco — nuestro proxy reenvía a Groq y solo registra el conteo de minutos para tu cuota, nunca el audio.",
+      a: "No. Nuestro backend recibe el audio, lo reenvía a Groq Whisper, devuelve el texto y descarta el audio. Solo registramos el conteo de segundos para tu cuota — nunca el audio ni el texto.",
     },
     {
       q: "¿Funciona offline?",
-      a: "Free necesita internet porque usa Groq Whisper (cloud). Un modo 100% local con mlx-whisper / faster-whisper está en el roadmap 2026.",
+      a: "Hoy no — usamos Groq Whisper en la nube por velocidad y calidad. Un modo 100% local con mlx-whisper / faster-whisper está en el roadmap 2026 para usuarios Pro.",
     },
     {
       q: "¿Por qué Windows primero si el original era de Mac?",
-      a: "Sinsajo Creators porta el sflow original (solo-macOS) a Windows. La validación de Mac viene después del MVP de Windows.",
+      a: "Sinsajo Creators porta el sflow original (solo-macOS) a Windows. El instalador para macOS está en waitlist — registra tu email y te avisamos cuando salga.",
     },
     {
-      q: "¿Qué pasa con mis transcripciones si cancelo Pro?",
+      q: "¿Qué pasa con mis transcripciones si cancelo?",
       a: "El historial local en tu máquina queda intacto para siempre. Si activamos cloud sync, exportamos tu data antes de cerrar la cuenta.",
     },
     {
-      q: "¿Puedo hostearlo yo mismo?",
-      a: "Sí — es open source (MIT). Trae tu Groq key, corre el .exe y listo.",
+      q: "¿Es open source?",
+      a: "Sí, el cliente desktop es MIT open source: github.com/lsomarribaprojects/KeyLess-Flow. El backend (proxy + billing) es propietario porque procesa pagos y datos de clientes.",
     },
   ];
   return (
@@ -509,16 +538,37 @@ function FinalCTA() {
             Tu próximo dictador está a <span className="mark">un click</span>.
           </h2>
           <p className="mx-auto mt-5 max-w-md leading-relaxed text-muted">
-            Instalador para Windows. 40 MB. Sin Python, sin terminal, sin drama.
+            Empieza gratis con 8 horas/mes. Sin tarjeta, sin Python, sin drama.
           </p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Magnetic>
-              <a href={`${REPO}/releases/latest`} className="btn-primary">
-                <DownloadIcon /> Descargar para Windows
+          <div className="mt-9 grid gap-4 sm:grid-cols-2">
+            {/* Windows — disponible HOY */}
+            <div className="rounded-lg border border-accent/40 bg-surface p-6 text-left shadow-[0_24px_60px_-34px_oklch(0.83_0.13_184_/_0.6)]">
+              <div className="flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-widest text-accent">
+                <span className="live-dot" />
+                Disponible
+              </div>
+              <h3 className="font-display mt-3 text-lg font-semibold">Windows 10 / 11</h3>
+              <p className="mt-1 text-sm text-muted">Instalador 40 MB. Crea tu cuenta y descarga.</p>
+              <a href="/signup?plan=free" className="btn-primary mt-5 w-full">
+                <DownloadIcon /> Empezar gratis
               </a>
-            </Magnetic>
-            <span className="font-mono text-xs text-faint">macOS pronto · Linux on demand</span>
+            </div>
+
+            {/* macOS — waitlist */}
+            <div className="rounded-lg border border-border bg-surface p-6 text-left">
+              <div className="font-mono text-[0.7rem] uppercase tracking-widest text-faint">
+                Próximamente
+              </div>
+              <h3 className="font-display mt-3 text-lg font-semibold">macOS</h3>
+              <p className="mt-1 text-sm text-muted">Te avisamos por email cuando esté listo.</p>
+              <a href="#waitlist-mac" className="btn-ghost mt-5 w-full">
+                Avísame
+              </a>
+            </div>
           </div>
+          <p className="mt-7 font-mono text-xs text-faint">
+            Linux on demand · escríbenos a hello@sinsajocreators.com si lo quieres
+          </p>
         </Reveal>
       </div>
     </section>
