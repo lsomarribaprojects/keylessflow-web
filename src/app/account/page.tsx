@@ -14,11 +14,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { createServerClient, createAdminClient } from "@/lib/supabase/server";
-import type { SubscriptionRow } from "@/lib/supabase/database.types";
+import type { SubscriptionRow, ProfileRow } from "@/lib/supabase/database.types";
 import { SignOutButton } from "@/components/SignOutButton";
 import { CopyButton } from "@/components/CopyButton";
 import { BillingPortalButton } from "@/components/BillingPortalButton";
 import { CheckoutButton } from "@/components/CheckoutButton";
+import { FREE_QUOTA_SECONDS, PRO_SOFT_CAP_SECONDS } from "@/lib/quota";
 
 export const metadata = { title: "Mi cuenta — KeyLess Flow" };
 
@@ -34,20 +35,42 @@ export default async function AccountPage() {
     redirect("/login?next=/account");
   }
 
-  // Service-role read so RLS doesn't matter (and we can grab the
-  // activation_code field once we add it — for now we derive it from user.id).
+  // Service-role read so RLS doesn't matter.
   const admin = createAdminClient();
-  const subResult = await admin
-    .from("subscriptions")
-    .select("plan,status,current_period_end,cancel_at_period_end")
-    .eq("user_id", user.id)
-    .single();
+  const [subResult, profileResult, usageResult] = await Promise.all([
+    admin
+      .from("subscriptions")
+      .select("plan,status,current_period_end,cancel_at_period_end")
+      .eq("user_id", user.id)
+      .single(),
+    admin
+      .from("profiles")
+      .select("trial_ends_at")
+      .eq("id", user.id)
+      .single(),
+    admin
+      .from("usage_current_month")
+      .select("seconds_this_month")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+
   const sub = subResult.data as
     | Pick<SubscriptionRow, "plan" | "status" | "current_period_end" | "cancel_at_period_end">
     | null;
+  const profile = profileResult.data as Pick<ProfileRow, "trial_ends_at"> | null;
+  const usageRow = usageResult.data as { seconds_this_month: number } | null;
+  const secondsUsed = usageRow?.seconds_this_month ?? 0;
 
   const plan = sub?.plan ?? "free";
   const isPaid = plan === "pro" || plan === "team";
+  const cap = isPaid ? PRO_SOFT_CAP_SECONDS : FREE_QUOTA_SECONDS;
+  const pctUsed = Math.min(100, Math.round((secondsUsed / cap) * 100));
+  const trialEndDate = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+  const trialActive = !isPaid && trialEndDate ? trialEndDate.getTime() > Date.now() : false;
+  const trialDaysLeft = trialEndDate
+    ? Math.max(0, Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   // Activation code: deterministic, derived from user.id so it's stable
   // across logins but unique per user. The /api/auth/activate endpoint
@@ -72,13 +95,13 @@ export default async function AccountPage() {
 
       {/* Plan card */}
       <section className="mt-10 rounded-lg border border-border-2 bg-surface p-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
             <p className="font-mono text-xs uppercase tracking-widest text-faint">
               plan actual
             </p>
             <p className="font-display mt-1 text-2xl font-semibold capitalize">
-              {plan === "free" ? "Free (BYOK)" : `${plan} · ${sub?.status}`}
+              {isPaid ? `${plan} · ${sub?.status}` : "Free Trial"}
             </p>
             {sub?.current_period_end && isPaid && (
               <p className="mt-1 text-sm text-muted">
@@ -90,11 +113,47 @@ export default async function AccountPage() {
                 })}
               </p>
             )}
+            {!isPaid && trialActive && (
+              <p className="mt-1 text-sm text-muted">
+                Tu trial termina en{" "}
+                <span className="text-fg">
+                  {trialDaysLeft} {trialDaysLeft === 1 ? "día" : "días"}
+                </span>
+              </p>
+            )}
+            {!isPaid && !trialActive && (
+              <p className="mt-1 text-sm text-red-400">
+                Tu trial terminó. Suscríbete para seguir dictando.
+              </p>
+            )}
           </div>
           {isPaid ? (
             <BillingPortalButton />
           ) : (
-            <CheckoutButton plan="pro" label="Upgrade a Pro $9.99/mo" />
+            <CheckoutButton plan="pro" label="Suscribirme a Pro" />
+          )}
+        </div>
+
+        {/* Usage bar */}
+        <div className="mt-6">
+          <div className="flex items-baseline justify-between font-mono text-xs">
+            <span className="text-muted">Uso este mes</span>
+            <span className="text-fg">
+              {formatHours(secondsUsed)} / {formatHours(cap)}
+              {!isPaid && " (cap Free)"}
+              {isPaid && " (soft cap)"}
+            </span>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg-band">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${pctUsed}%` }}
+            />
+          </div>
+          {!isPaid && pctUsed >= 80 && (
+            <p className="mt-2 font-mono text-xs text-accent">
+              Casi llegas al cap mensual. Considera Pro para dictado ilimitado.
+            </p>
           )}
         </div>
       </section>
@@ -167,6 +226,16 @@ export default async function AccountPage() {
 }
 
 /* ------------------------------------------------------------------ helpers */
+function formatHours(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const totalMinutes = Math.round(seconds / 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
 function formatActivationCode(uuid: string): string {
   // KF-XXXX-XXXX-XXXX — pretty + short, derived deterministically from the
   // UUID so it's stable across logins. Backend validates by reversing.

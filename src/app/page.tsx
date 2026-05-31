@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import { WaitlistButton } from "@/components/WaitlistButton";
 import {
   AmbientGlow,
   Counter,
@@ -561,9 +562,9 @@ function FinalCTA() {
               </div>
               <h3 className="font-display mt-3 text-lg font-semibold">macOS</h3>
               <p className="mt-1 text-sm text-muted">Te avisamos por email cuando esté listo.</p>
-              <a href="#waitlist-mac" className="btn-ghost mt-5 w-full">
-                Avísame
-              </a>
+              <div className="mt-5">
+                <WaitlistButton platform="mac" source="landing_finalcta" />
+              </div>
             </div>
           </div>
           <p className="mt-7 font-mono text-xs text-faint">

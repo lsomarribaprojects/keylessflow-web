@@ -16,12 +16,20 @@
 -- profiles
 -- -----------------------------------------------------------------------------
 create table if not exists public.profiles (
-    id            uuid primary key references auth.users(id) on delete cascade,
-    email         text unique not null,
-    display_name  text,
-    created_at    timestamptz not null default now(),
-    updated_at    timestamptz not null default now()
+    id                          uuid primary key references auth.users(id) on delete cascade,
+    email                       text unique not null,
+    display_name                text,
+    -- Trial: every user gets 30 days of Pro-equivalent access (capped at 8h/mo
+    -- via usage_logs aggregation). Set by handle_new_user trigger.
+    trial_ends_at               timestamptz,
+    trial_promo_email_sent_at   timestamptz,
+    created_at                  timestamptz not null default now(),
+    updated_at                  timestamptz not null default now()
 );
+
+-- For existing tables created before this column existed, add it idempotently.
+alter table public.profiles add column if not exists trial_ends_at timestamptz;
+alter table public.profiles add column if not exists trial_promo_email_sent_at timestamptz;
 
 alter table public.profiles enable row level security;
 
@@ -43,8 +51,9 @@ security definer
 set search_path = public
 as $$
 begin
-    insert into public.profiles (id, email)
-    values (new.id, new.email)
+    -- 30-day Free Trial starts the moment auth.users gets the row.
+    insert into public.profiles (id, email, trial_ends_at)
+    values (new.id, new.email, now() + interval '30 days')
     on conflict (id) do nothing;
     return new;
 end;
@@ -146,3 +155,25 @@ select
 from public.usage_logs
 where created_at >= date_trunc('month', now())
 group by user_id;
+
+-- -----------------------------------------------------------------------------
+-- waitlist (Mac / Linux pre-registrations)
+-- -----------------------------------------------------------------------------
+-- Captures intent before non-Windows builds ship. Email-only, no auth.
+-- One row per (email, platform) — re-submitting is a no-op.
+create table if not exists public.waitlist (
+    id           bigserial primary key,
+    email        text not null,
+    platform     text not null check (platform in ('mac', 'linux')),
+    source       text,                          -- e.g. 'landing_finalcta'
+    created_at   timestamptz not null default now(),
+    notified_at  timestamptz,                   -- set when we email the install link
+    unique (email, platform)
+);
+
+create index if not exists waitlist_platform_created_idx
+    on public.waitlist (platform, created_at desc);
+
+alter table public.waitlist enable row level security;
+-- No SELECT policy on purpose — only the service-role key (server) can read.
+-- Protects the email list from being scraped via the public anon key.

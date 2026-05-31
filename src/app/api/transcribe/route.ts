@@ -14,8 +14,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/server";
-import type { SubscriptionRow } from "@/lib/supabase/database.types";
 import { verifyDesktopToken } from "@/lib/desktop-token";
+import { checkQuotaAndConsume } from "@/lib/quota";
 
 const GROQ_MODEL = "whisper-large-v3-turbo";
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/audio/transcriptions";
@@ -61,24 +61,25 @@ export async function POST(req: NextRequest) {
     userEmail = userData.user.email ?? "";
   }
 
-  // ---------------------------------------------------- 2. Subscription check
-  const subResult = await admin
-    .from("subscriptions")
-    .select("plan,status")
-    .eq("user_id", userId)
-    .single();
-  const sub = subResult.data as Pick<SubscriptionRow, "plan" | "status"> | null;
-
-  const isPaid =
-    sub &&
-    (sub.plan === "pro" || sub.plan === "team") &&
-    (sub.status === "active" || sub.status === "trialing");
-
-  if (!isPaid) {
+  // ---------------------------------------------------- 2. Quota + trial check
+  // Single source of truth in lib/quota.ts: handles Pro (always serve, log
+  // soft-cap warning), Free Trial (check trial_ends_at + 8h/mo cap), and
+  // expired/inactive accounts (402 with upgrade_url).
+  const decision = await checkQuotaAndConsume(admin, userId, env.SITE_URL);
+  if (!decision.allowed) {
     return NextResponse.json(
-      { error: "subscription_required", upgrade_url: `${env.SITE_URL}/pricing` },
+      {
+        error: decision.reason,
+        upgrade_url: decision.upgrade_url,
+        seconds_used: decision.seconds_used,
+        seconds_cap: decision.seconds_cap,
+      },
       { status: 402 },
     );
+  }
+  if (decision.warn) {
+    // Log only — don't block Pro users. Useful for spotting abuse early.
+    console.warn(`[transcribe] user=${userId} ${decision.warn}`);
   }
 
   // -------------------------------------------------------- 3. Read upload

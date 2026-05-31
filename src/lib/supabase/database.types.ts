@@ -18,8 +18,21 @@ export interface ProfileRow {
   id: string;
   email: string;
   display_name: string | null;
+  trial_ends_at: string | null;
+  trial_promo_email_sent_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export type WaitlistPlatform = "mac" | "linux";
+
+export interface WaitlistRow {
+  id: number;
+  email: string;
+  platform: WaitlistPlatform;
+  source: string | null;
+  created_at: string;
+  notified_at: string | null;
 }
 
 export interface SubscriptionRow {
@@ -73,6 +86,16 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<UsageLogRow>;
+        Relationships: [];
+      };
+      waitlist: {
+        Row: WaitlistRow;
+        Insert: Omit<WaitlistRow, "id" | "created_at" | "notified_at"> & {
+          id?: number;
+          created_at?: string;
+          notified_at?: string | null;
+        };
+        Update: Partial<WaitlistRow>;
         Relationships: [];
       };
     };
