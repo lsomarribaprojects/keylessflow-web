@@ -21,7 +21,7 @@ import { BillingPortalButton } from "@/components/BillingPortalButton";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { FREE_QUOTA_SECONDS, PRO_SOFT_CAP_SECONDS } from "@/lib/quota";
 
-export const metadata = { title: "Mi cuenta — KeyLess Flow" };
+export const metadata = { title: "Mi cuenta — KeyLess by Sinsajo" };
 
 const INSTALLER_URL =
   "https://github.com/lsomarribaprojects/KeyLess-Flow/releases/latest/download/KeyLessFlow-Setup.exe";
@@ -164,7 +164,7 @@ export default async function AccountPage() {
           descarga
         </p>
         <h2 className="font-display mt-2 text-xl font-semibold">
-          KeyLess Flow para Windows
+          KeyLess by Sinsajo para Windows
         </h2>
         <p className="mt-1 text-sm text-muted">
           Instalador único de ~40 MB. Doble-click, Siguiente, listo.
@@ -187,7 +187,7 @@ export default async function AccountPage() {
             Conecta tu app desktop al plan {plan}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Cuando abras KeyLess Flow por primera vez, elige &ldquo;Conectar con
+            Cuando abras KeyLess by Sinsajo por primera vez, elige &ldquo;Conectar con
             cuenta&rdquo; y pega este código:
           </p>
           <div className="mt-4 flex items-center gap-3 rounded-md border border-border-2 bg-bg-band px-4 py-3">

@@ -20,10 +20,10 @@ const display = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "KeyLess Flow — Voice to text para Windows y Mac",
+  title: "KeyLess by Sinsajo — Voice to text para Windows y Mac",
   description:
     "Dicta donde quieras con un hotkey. Whisper de Groq, paste automático, 25x más barato que Wispr Flow.",
-  applicationName: "KeyLess Flow",
+  applicationName: "KeyLess by Sinsajo",
   authors: [{ name: "Sinsajo Creators" }],
   keywords: [
     "voice to text",
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     "sinsajo creators",
   ],
   openGraph: {
-    title: "KeyLess Flow — Voice to text para Windows y Mac",
+    title: "KeyLess by Sinsajo — Voice to text para Windows y Mac",
     description:
       "Dicta donde quieras con un hotkey. Whisper de Groq, paste automático, 25x más barato que Wispr Flow.",
-    siteName: "KeyLess Flow",
+    siteName: "KeyLess by Sinsajo",
     type: "website",
   },
 };

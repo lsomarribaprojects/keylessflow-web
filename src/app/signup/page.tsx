@@ -10,7 +10,7 @@ import { Suspense } from "react";
 
 import { AuthForm } from "@/components/AuthForm";
 
-export const metadata = { title: "Crear cuenta — KeyLess Flow" };
+export const metadata = { title: "Crear cuenta — KeyLess by Sinsajo" };
 
 export default function SignupPage() {
   return (

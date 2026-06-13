@@ -22,7 +22,7 @@ let _stripe: Stripe | null = null;
 export function getStripe(): Stripe {
   if (_stripe) return _stripe;
   _stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
-    appInfo: { name: "KeyLess Flow", url: env.SITE_URL },
+    appInfo: { name: "KeyLess by Sinsajo", url: env.SITE_URL },
   });
   return _stripe;
 }

@@ -12,7 +12,7 @@ import Link from "next/link";
 
 import { createServerClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "¡Bienvenido! — KeyLess Flow" };
+export const metadata = { title: "¡Bienvenido! — KeyLess by Sinsajo" };
 
 export default async function SuccessPage() {
   const supabase = await createServerClient();
@@ -63,7 +63,7 @@ export default async function SuccessPage() {
             Descarga &amp; conecta la app
           </p>
           <p className="mt-1 text-sm text-muted">
-            Si ya tienes KeyLess Flow instalada: tray icon → &ldquo;Conectar con
+            Si ya tienes KeyLess by Sinsajo instalada: tray icon → &ldquo;Conectar con
             cuenta Pro&rdquo; → pega tu código. Si no, descárgala desde tu cuenta.
           </p>
         </div>

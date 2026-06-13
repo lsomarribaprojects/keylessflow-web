@@ -10,7 +10,7 @@ import { Suspense } from "react";
 
 import { AuthForm } from "@/components/AuthForm";
 
-export const metadata = { title: "Iniciar sesión — KeyLess Flow" };
+export const metadata = { title: "Iniciar sesión — KeyLess by Sinsajo" };
 
 export default function LoginPage() {
   return (

@@ -1,7 +1,7 @@
 /**
  * POST /api/transcribe
  *
- * The KeyLess Flow desktop app (Pro plan only) sends a multipart upload of
+ * The KeyLess by Sinsajo desktop app (Pro plan only) sends a multipart upload of
  * MP3 audio + Bearer JWT. We verify the user, check subscription status,
  * forward to Groq Whisper with Sinsajo's master key, and log usage.
  *

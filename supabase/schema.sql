@@ -1,5 +1,5 @@
 -- =============================================================================
--- KeyLess Flow — initial Supabase schema
+-- KeyLess by Sinsajo — initial Supabase schema
 -- =============================================================================
 -- Run in Supabase: SQL Editor → New query → paste this → Run.
 -- Idempotent: safe to re-run; uses IF NOT EXISTS / CREATE OR REPLACE.

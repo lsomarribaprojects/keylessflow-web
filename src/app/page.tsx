@@ -40,7 +40,7 @@ function Header() {
         <Link href="/" className="flex items-center gap-2.5">
           <Image src="/brand/hummingbird.png" alt="" width={26} height={26} priority />
           <span className="font-display text-[1.05rem] font-semibold tracking-tight">
-            KeyLess Flow
+            KeyLess by Sinsajo
           </span>
         </Link>
         <span className="hidden font-mono text-[0.7rem] tracking-wide text-faint sm:inline">
@@ -220,7 +220,7 @@ function Features() {
             <h3 className="bento-title">Funciona en cualquier app</h3>
             <p className="bento-body">
               Notepad, Chrome, Slack, Word, tu terminal. Si tiene un campo de texto,
-              KeyLess Flow escribe ahí — vía paste nativo, no macros frágiles.
+              KeyLess by Sinsajo escribe ahí — vía paste nativo, no macros frágiles.
             </p>
           </div>
         </Reveal>
@@ -307,7 +307,7 @@ function Compare() {
           </h2>
           <p className="mt-5 max-w-md leading-relaxed text-muted">
             Wispr Flow Free te limita a <strong className="text-fg">~3.5 horas/mes</strong> y bloquea
-            las AI Commands. KeyLess Flow Free Trial te da <strong className="text-fg">8 horas/mes</strong>{" "}
+            las AI Commands. KeyLess by Sinsajo Free Trial te da <strong className="text-fg">8 horas/mes</strong>{" "}
             con TODAS las features de Pro durante 30 días — sin tarjeta.
           </p>
         </Reveal>
@@ -324,7 +324,7 @@ function Compare() {
           </div>
           <div className="rounded-lg border border-accent/40 bg-surface p-5 shadow-[0_24px_60px_-34px_oklch(0.83_0.13_184_/_0.6)]">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-fg">KeyLess Flow Free Trial</span>
+              <span className="text-sm text-fg">KeyLess by Sinsajo Free Trial</span>
               <span className="font-display text-2xl font-semibold">8h<span className="text-base text-faint">/mes</span></span>
             </div>
             <div className="mt-3 h-2 rounded-full bg-surface-2">
@@ -585,7 +585,7 @@ function Footer() {
           <div>
             <div className="flex items-center gap-2.5">
               <Image src="/brand/hummingbird.png" alt="" width={26} height={26} />
-              <span className="font-display text-lg font-semibold">KeyLess Flow</span>
+              <span className="font-display text-lg font-semibold">KeyLess by Sinsajo</span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
               Dictado por voz que aparece donde escribes. Por{" "}
