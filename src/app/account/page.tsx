@@ -177,14 +177,15 @@ export default async function AccountPage() {
         </p>
       </section>
 
-      {/* Activation code (only useful for Pro/Team — Free uses their own Groq key) */}
-      {isPaid && (
+      {/* Activation code — needed by every account that can dictate: paid OR
+          a free account with an active trial. There is no BYOK path anymore. */}
+      {(isPaid || trialActive) && (
         <section className="mt-6 rounded-lg border border-accent/30 bg-surface p-6">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             código de activación
           </p>
           <h2 className="font-display mt-2 text-xl font-semibold">
-            Conecta tu app desktop al plan {plan}
+            Conecta tu app desktop
           </h2>
           <p className="mt-1 text-sm text-muted">
             Cuando abras KeyLess by Sinsajo por primera vez, elige &ldquo;Conectar con
@@ -204,14 +205,14 @@ export default async function AccountPage() {
       {!isPaid && (
         <section className="mt-6 rounded-lg border border-border bg-bg-band p-6">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
-            estás en Free (BYOK)
+            estás en Free Trial
           </p>
           <h2 className="font-display mt-2 text-xl font-semibold">
-            ¿Sin ganas de manejar tu Groq API key?
+            ¿Listo para dictado sin límites?
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Plan Pro: $9.99/mes, dictado ilimitado (hasta 50h soft cap), cero setup.
-            Nosotros pagamos la API. Tú solo dictas.
+            Plan Pro: $9.99/mes, dictado ilimitado (hasta 50h soft cap), sin
+            caducidad. Nosotros ponemos el motor de transcripción. Tú solo dictas.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <CheckoutButton plan="pro" label="Subscribe Pro · $9.99/mo" />

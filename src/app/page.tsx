@@ -269,7 +269,7 @@ function Features() {
 function HowItWorks() {
   const steps = [
     { n: "01", title: "Descarga e instala", body: "Un .exe de 40 MB. Doble click y listo — sin Python, sin terminal." },
-    { n: "02", title: "Pega tu Groq API key", body: "Gratis en console.groq.com/keys. O suscríbete a Pro y olvídate del setup." },
+    { n: "02", title: "Inicia sesión y conecta", body: "Crea tu cuenta, copia tu código de activación y pégalo en la app. 30 días gratis, sin tarjeta — sin API keys ni configuración." },
     { n: "03", title: "Mantén Ctrl+Alt y habla", body: "El texto aparece donde está tu cursor. En cualquier app, al instante." },
   ];
   return (
@@ -379,7 +379,7 @@ function Pricing() {
               variant="ghost"
               features={[
                 "Dictado ilimitado (50h soft cap)",
-                "Sin API keys, login y listo",
+                "Sin caducidad — no expira a los 30 días",
                 "Soporte prioritario",
                 "Cancelas cuando quieras",
               ]}

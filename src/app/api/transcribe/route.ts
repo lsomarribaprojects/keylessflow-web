@@ -1,14 +1,13 @@
 /**
  * POST /api/transcribe
  *
- * The KeyLess by Sinsajo desktop app (Pro plan only) sends a multipart upload of
- * MP3 audio + Bearer JWT. We verify the user, check subscription status,
- * forward to Groq Whisper with Sinsajo's master key, and log usage.
+ * The KeyLess by Sinsajo desktop app sends a multipart upload of MP3 audio +
+ * Bearer token (desktop HMAC token or Supabase JWT). We verify the user,
+ * check quota/trial state, forward to Groq Whisper with Sinsajo's master
+ * key, and log usage. Every authenticated user goes through here — both Free
+ * Trial (8h/mo) and Pro/Team. There is no BYOK path anymore.
  *
  * Returns { text: string, model: string, elapsed_ms: number }.
- *
- * Free-plan users hit Groq directly from the desktop app with their own
- * key — they never touch this endpoint.
  */
 import { NextRequest, NextResponse } from "next/server";
 
