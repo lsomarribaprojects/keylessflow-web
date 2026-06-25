@@ -93,14 +93,17 @@ export async function POST(req: NextRequest) {
       { status: 413 },
     );
   }
-  const language = (formData.get("language") as string) || "es";
+  // Empty / "auto" → let Whisper detect the language (handles es + en + …).
+  // The desktop app omits the field when set to auto, but guard "auto" too.
+  const langRaw = (formData.get("language") as string) || "";
+  const language = langRaw === "auto" ? "" : langRaw;
   const prompt = (formData.get("prompt") as string) || "";
 
   // -------------------------------------------------- 4. Forward to Groq
   const groqForm = new FormData();
   groqForm.set("file", file, file.name || "audio.mp3");
   groqForm.set("model", GROQ_MODEL);
-  groqForm.set("language", language);
+  if (language) groqForm.set("language", language);
   groqForm.set("response_format", "text");
   groqForm.set("temperature", "0");
   if (prompt) groqForm.set("prompt", prompt);
