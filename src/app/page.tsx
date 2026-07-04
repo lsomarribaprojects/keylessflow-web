@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
-import { WaitlistButton } from "@/components/WaitlistButton";
 import {
   AmbientGlow,
   Counter,
@@ -11,6 +10,10 @@ import {
 } from "@/components/motion-primitives";
 
 const REPO = "https://github.com/lsomarribaprojects/KeyLess-Flow";
+const APP_VERSION = "1.1.1";
+const DOWNLOAD_WIN = `${REPO}/releases/download/v${APP_VERSION}/KeyLessFlow-Setup.exe`;
+const DOWNLOAD_MAC = `${REPO}/releases/download/v${APP_VERSION}/KeyLess-by-Sinsajo.dmg`;
+const DOWNLOAD_LINUX = `${REPO}/releases/download/v${APP_VERSION}/KeyLessFlow-x86_64.AppImage`;
 
 export default function Home() {
   return (
@@ -44,7 +47,7 @@ function Header() {
           </span>
         </Link>
         <span className="hidden font-mono text-[0.7rem] tracking-wide text-faint sm:inline">
-          v1.0 · windows
+          v{APP_VERSION} · windows + macOS
         </span>
         <div className="ml-auto flex items-center gap-1 sm:gap-5">
           <a href="#precios" className="hidden text-sm text-muted transition-colors duration-150 hover:text-fg sm:inline">
@@ -81,7 +84,7 @@ function Hero() {
         <Reveal className="max-w-xl">
           <span className="inline-flex items-center gap-2.5 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
             <span className="live-dot" />
-            Disponible para Windows · macOS pronto
+            Disponible para Windows y macOS
           </span>
           <h1
             className="font-display mt-6 font-semibold leading-[1.02] tracking-tight"
@@ -542,33 +545,50 @@ function FinalCTA() {
             Empieza gratis con 8 horas/mes. Sin tarjeta, sin Python, sin drama.
           </p>
           <div className="mt-9 grid gap-4 sm:grid-cols-2">
-            {/* Windows — disponible HOY */}
+            {/* Windows */}
             <div className="rounded-lg border border-accent/40 bg-surface p-6 text-left shadow-[0_24px_60px_-34px_oklch(0.83_0.13_184_/_0.6)]">
               <div className="flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-widest text-accent">
                 <span className="live-dot" />
                 Disponible
               </div>
               <h3 className="font-display mt-3 text-lg font-semibold">Windows 10 / 11</h3>
-              <p className="mt-1 text-sm text-muted">Instalador 40 MB. Crea tu cuenta y descarga.</p>
-              <a href="/signup?plan=free" className="btn-primary mt-5 w-full">
-                <DownloadIcon /> Empezar gratis
+              <p className="mt-1 text-sm text-muted">Instalador 40 MB · audio del sistema nativo (WASAPI).</p>
+              <a href={DOWNLOAD_WIN} className="btn-primary mt-5 w-full">
+                <DownloadIcon /> Descargar .exe
+              </a>
+              <a href="/signup?plan=free" className="mt-2 block w-full text-center text-xs text-muted underline-offset-2 hover:underline">
+                o crear cuenta primero
               </a>
             </div>
 
-            {/* macOS — waitlist */}
-            <div className="rounded-lg border border-border bg-surface p-6 text-left">
-              <div className="font-mono text-[0.7rem] uppercase tracking-widest text-faint">
-                Próximamente
+            {/* macOS */}
+            <div className="rounded-lg border border-accent/40 bg-surface p-6 text-left shadow-[0_24px_60px_-34px_oklch(0.83_0.13_184_/_0.6)]">
+              <div className="flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-widest text-accent">
+                <span className="live-dot" />
+                Disponible
               </div>
-              <h3 className="font-display mt-3 text-lg font-semibold">macOS</h3>
-              <p className="mt-1 text-sm text-muted">Te avisamos por email cuando esté listo.</p>
-              <div className="mt-5">
-                <WaitlistButton platform="mac" source="landing_finalcta" />
-              </div>
+              <h3 className="font-display mt-3 text-lg font-semibold">macOS 12+</h3>
+              <p className="mt-1 text-sm text-muted">
+                DMG 40 MB · Apple Silicon &amp; Intel · audio del sistema con{" "}
+                <a href="https://existential.audio/blackhole/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-fg">
+                  BlackHole
+                </a>
+                .
+              </p>
+              <a href={DOWNLOAD_MAC} className="btn-primary mt-5 w-full">
+                <DownloadIcon /> Descargar .dmg
+              </a>
+              <a href="/signup?plan=free" className="mt-2 block w-full text-center text-xs text-muted underline-offset-2 hover:underline">
+                o crear cuenta primero
+              </a>
             </div>
           </div>
           <p className="mt-7 font-mono text-xs text-faint">
-            Linux on demand · escríbenos a hello@sinsajocreators.com si lo quieres
+            Linux (AppImage 95 MB) ·{" "}
+            <a href={DOWNLOAD_LINUX} className="underline underline-offset-2 hover:text-muted">
+              descargar
+            </a>{" "}
+            · escríbenos a hello@sinsajocreators.com si necesitas ayuda
           </p>
         </Reveal>
       </div>
