@@ -121,6 +121,48 @@ export async function checkQuotaAndConsume(
   };
 }
 
+export type AccessDecision =
+  | { allowed: true; plan: string }
+  | {
+      allowed: false;
+      reason: "no_profile" | "subscription_inactive" | "trial_expired";
+      upgrade_url: string;
+    };
+
+/**
+ * Lighter gate for non-audio endpoints (e.g. /api/llm cleanup + transforms).
+ * Same plan/trial logic as checkQuotaAndConsume but WITHOUT counting audio
+ * seconds — LLM calls are cheap and shouldn't be blocked by the 8h audio cap.
+ */
+export async function checkAccess(
+  admin: Admin,
+  userId: string,
+  siteUrl: string,
+): Promise<AccessDecision> {
+  const [profileRes, subRes] = await Promise.all([
+    admin.from("profiles").select("trial_ends_at").eq("id", userId).single(),
+    admin.from("subscriptions").select("plan,status").eq("user_id", userId).single(),
+  ]);
+  const profile = profileRes.data as Pick<ProfileRow, "trial_ends_at"> | null;
+  const sub = subRes.data as Pick<SubscriptionRow, "plan" | "status"> | null;
+  if (!sub) {
+    return { allowed: false, reason: "no_profile", upgrade_url: `${siteUrl}/signup` };
+  }
+  const isPaid =
+    (sub.plan === "pro" || sub.plan === "team") &&
+    (sub.status === "active" || sub.status === "trialing");
+  if (isPaid) return { allowed: true, plan: sub.plan };
+  if (sub.plan !== "free") {
+    return { allowed: false, reason: "subscription_inactive", upgrade_url: `${siteUrl}/pricing` };
+  }
+  const trialEnd = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+  const trialAlive = trialEnd !== null && trialEnd.getTime() > Date.now();
+  if (!trialAlive) {
+    return { allowed: false, reason: "trial_expired", upgrade_url: `${siteUrl}/pricing?promo=trial-ended` };
+  }
+  return { allowed: true, plan: "free" };
+}
+
 async function sumSecondsThisMonth(admin: Admin, userId: string): Promise<number> {
   // Use the view we created in schema.sql for an O(1) lookup.
   const res = await admin

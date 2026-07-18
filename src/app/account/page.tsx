@@ -23,8 +23,9 @@ import { FREE_QUOTA_SECONDS, PRO_SOFT_CAP_SECONDS } from "@/lib/quota";
 
 export const metadata = { title: "Mi cuenta — KeyLess by Sinsajo" };
 
-const INSTALLER_URL =
-  "https://github.com/lsomarribaprojects/KeyLess-Flow/releases/latest/download/KeyLessFlow-Setup.exe";
+const RELEASES = "https://github.com/lsomarribaprojects/KeyLess-Flow/releases/latest/download";
+const INSTALLER_WIN = `${RELEASES}/KeyLessFlow-Setup.exe`;
+const INSTALLER_MAC = `${RELEASES}/KeyLess-by-Sinsajo.dmg`;
 
 export default async function AccountPage() {
   const supabase = await createServerClient();
@@ -164,16 +165,22 @@ export default async function AccountPage() {
           descarga
         </p>
         <h2 className="font-display mt-2 text-xl font-semibold">
-          KeyLess by Sinsajo para Windows
+          Descarga KeyLess by Sinsajo
         </h2>
         <p className="mt-1 text-sm text-muted">
-          Instalador único de ~40 MB. Doble-click, Siguiente, listo.
+          Instalador único de ~40 MB. Doble-click, Siguiente, listo. Elige tu
+          sistema operativo.
         </p>
-        <a href={INSTALLER_URL} className="btn-primary mt-4 inline-flex">
-          ↓ Descargar KeyLessFlow-Setup.exe
-        </a>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <a href={INSTALLER_WIN} className="btn-primary inline-flex items-center justify-center">
+            ↓ Windows (.exe)
+          </a>
+          <a href={INSTALLER_MAC} className="btn-ghost inline-flex items-center justify-center">
+            ↓ macOS (.dmg)
+          </a>
+        </div>
         <p className="mt-3 font-mono text-xs text-faint">
-          macOS · próximamente · Linux on demand
+          Windows 10/11 · macOS 12+ · Linux (AppImage) on demand
         </p>
       </section>
 
