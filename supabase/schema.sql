@@ -177,3 +177,24 @@ create index if not exists waitlist_platform_created_idx
 alter table public.waitlist enable row level security;
 -- No SELECT policy on purpose — only the service-role key (server) can read.
 -- Protects the email list from being scraped via the public anon key.
+
+-- -----------------------------------------------------------------------------
+-- community_leads (workshop / comunidad — app gratis con su propia API key)
+-- -----------------------------------------------------------------------------
+-- /api/community also creates a Supabase Auth user per lead (so they land in
+-- the normal funnel); this table is the clean, queryable contact list.
+-- Run this block in Supabase → SQL Editor once. The API tolerates its absence.
+create table if not exists public.community_leads (
+    id           bigserial primary key,
+    name         text not null,
+    email        text not null unique,
+    whatsapp     text,
+    source       text,                          -- 'comunidad', 'workshop-2026-09', ...
+    created_at   timestamptz not null default now()
+);
+
+create index if not exists community_leads_created_idx
+    on public.community_leads (created_at desc);
+
+alter table public.community_leads enable row level security;
+-- No SELECT policy on purpose — only the service-role key (server) can read.
