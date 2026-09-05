@@ -10,7 +10,7 @@ import {
 } from "@/components/motion-primitives";
 
 const REPO = "https://github.com/lsomarribaprojects/KeyLess-Flow";
-const APP_VERSION = "1.2.2";
+const APP_VERSION = "1.3.0";
 const DOWNLOAD_WIN = `${REPO}/releases/download/v${APP_VERSION}/KeyLessFlow-Setup.exe`;
 const DOWNLOAD_MAC = `${REPO}/releases/download/v${APP_VERSION}/KeyLess-by-Sinsajo.dmg`;
 const DOWNLOAD_LINUX = `${REPO}/releases/download/v${APP_VERSION}/KeyLessFlow-x86_64.AppImage`;
