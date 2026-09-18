@@ -56,6 +56,9 @@ function Header() {
           <a href="#faq" className="hidden text-sm text-muted transition-colors duration-150 hover:text-fg sm:inline">
             FAQ
           </a>
+          <a href="/movil" className="hidden text-sm text-muted transition-colors duration-150 hover:text-fg sm:inline">
+            iPhone / Android
+          </a>
           <a
             href={REPO}
             target="_blank"
@@ -617,6 +620,7 @@ function Footer() {
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted">
             <a href="#precios" className="transition-colors duration-150 hover:text-fg">Precios</a>
             <a href="#faq" className="transition-colors duration-150 hover:text-fg">FAQ</a>
+            <a href="/movil" className="transition-colors duration-150 hover:text-fg">App móvil</a>
             <a href={REPO} target="_blank" rel="noopener noreferrer" className="transition-colors duration-150 hover:text-fg">GitHub</a>
             <a href="/legal/privacy" className="transition-colors duration-150 hover:text-fg">Privacidad</a>
             <a href="/legal/terms" className="transition-colors duration-150 hover:text-fg">Términos</a>

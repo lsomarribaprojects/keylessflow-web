@@ -208,6 +208,24 @@ export default async function AccountPage() {
         </section>
       )}
 
+      {/* Mobile PWA — same activation code, nothing to install from a store */}
+      <section className="mt-6 rounded-lg border border-border bg-surface p-6">
+        <p className="font-mono text-xs uppercase tracking-widest text-faint">
+          iphone / android
+        </p>
+        <h2 className="font-display mt-2 text-xl font-semibold">
+          Dicta también desde el teléfono
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          Abre <Link href="/movil" className="text-accent underline">/movil</Link> en Safari, toca
+          Compartir → &ldquo;Añadir a pantalla de inicio&rdquo; y pega el mismo código de activación
+          en Ajustes. Graba, transcribe y copia el texto donde quieras.
+        </p>
+        <Link href="/movil" className="btn-ghost mt-4 inline-flex items-center justify-center">
+          Abrir la app móvil
+        </Link>
+      </section>
+
       {/* Free → upsell */}
       {!isPaid && (
         <section className="mt-6 rounded-lg border border-border bg-bg-band p-6">

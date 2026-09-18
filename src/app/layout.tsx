@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     "Dicta donde quieras con un hotkey. Whisper de Groq, paste automático, 25x más barato que Wispr Flow.",
   applicationName: "KeyLess by Sinsajo",
   authors: [{ name: "Sinsajo Creators" }],
+  // PWA (/movil): home-screen icon on iPhone + the manifest link everywhere.
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  manifest: "/manifest.webmanifest",
   keywords: [
     "voice to text",
     "dictado por voz",

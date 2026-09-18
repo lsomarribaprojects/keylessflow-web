@@ -29,8 +29,22 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
    Auth con metadata; insert opcional en `community_leads`). `api/waitlist` — Mac/Linux.
 5. Páginas: `/` landing (pinea `APP_VERSION` a assets del release), `/signup`, `/login`,
    `/account` (descargas Win/Mac + código de activación), `/pricing`. Schema: `supabase/schema.sql`.
+6. **`/movil` = PWA para iPhone/Android** (`src/app/movil`, `components/movil`, `lib/movil`):
+   MediaRecorder → Whisper → filtro de alucinaciones → limpieza LLM → Copiar/Compartir + historial
+   local. Dos conexiones: Groq key propia (llama a `api.groq.com` DIRECTO desde el navegador, CORS
+   `*`) o código `KF-…` → `/api/auth/activate` → token `kfd_` → `/api/transcribe` + `/api/llm`.
+   `manifest.ts` + `public/sw.js` (solo shell) + iconos en `public/icons`. Puerto de
+   `hallucination_filter.py` y `llm_cleanup.py` del desktop: mantener en sincronía.
 
 ## Decisiones y por qué
+- **iPhone = PWA, no app nativa**: iOS no permite hotkeys globales ni pegar en otras apps desde
+  web, y una app nativa exige Swift + Mac + cuenta de developer. La PWA cubre el caso real (grabar →
+  texto → copiar/compartir a WhatsApp/Notas) y se instala desde Safari sin App Store. BYOK va
+  directo a Groq para que funcione aunque Supabase esté pausado.
+- **La limpieza LLM envuelve la transcripción como DATO** (`lib/movil/cleanup.ts`): `gpt-oss-120b`
+  respondió a un dictado normal ("Analiza todos estos repositorios…") con "I'm sorry, but I can't
+  help with that". Marcas `<<<TRANSCRIPCION>>>…<<<FIN>>>` + `plausibleCleanup()` (rechazo o largo
+  <60%/>150% → texto crudo). El desktop aún NO tiene este guard (tarea pendiente).
 - **Descarga libre, cuenta obligatoria para USAR** (la app exige cuenta o key BYOK al abrir):
   gatear la descarga mata instalaciones; el lead se captura en el signup o en `/comunidad`.
 - **Leads de comunidad = usuarios de Auth** (sin migración): caen en el mismo funnel (perfil +
@@ -39,8 +53,13 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
 - **Modelo LLM nunca hardcodeado**: Groq rota su catálogo (retiró llama-3.3 en 2026-08).
 - **`NEXT_PUBLIC_SITE_URL` = vercel.app** hasta que exista dominio propio.
 
-## Estado actual (2026-09-05)
-- Verificado en prod: `/` (v1.3.1), `/comunidad` 200, `/api/llm` 401 sin token (gate OK).
+## Estado actual (2026-09-18)
+- **Nuevo: `/movil` (PWA)** — build/tsc/eslint OK; E2E real BYOK contra Groq
+  (`node scripts/movil_e2e.mjs` → `MOVIL_E2E_OK`); UI probada en viewport iPhone con Groq
+  stubbeado (settings → subir audio → texto limpio → historial). **Falta probar en el iPhone
+  real de Luis**: Safari → `/movil` → Compartir → "Añadir a pantalla de inicio" → Ajustes → pegar
+  Groq key → grabar. El modo cuenta (`KF-…`) depende de Supabase (pausado) → no verificable aún.
+- Verificado en prod (2026-09-05): `/` (v1.3.1), `/comunidad` 200, `/api/llm` 401 sin token (gate OK).
 - **BLOQUEADO — acción de Luis**: el proyecto Supabase `aaiqjtgrsogknmngvjxu` está **pausado**
   (free tier, inactividad) → `getaddrinfo ENOTFOUND` desde Vercel → todo endpoint admin da 500
   (`store_failed`). Restaurar en supabase.com → luego `POST /api/waitlist` debe dar 200 y
@@ -50,6 +69,13 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
   + alertas de gasto (plan en bitácora del desktop); página `/byok`.
 
 ## Trampas
+- **`react-hooks/set-state-in-effect` y `purity` son errores de ESLint** (React Compiler rules en
+  Next 16): estado inicial del navegador → `useState(() => …)` en un componente montado con
+  `next/dynamic({ ssr:false })` (así está `/movil`), no `setState` dentro de `useEffect`.
+  `next build` ya NO corre ESLint: correr `npx eslint <paths>` a mano antes de push.
+- **El servidor local para probar**: `npm run build && npm run start` (el `launch.json` del repo
+  desktop lo arranca con `autoPort`); el SW solo se registra en `https:`, así que en local no hay
+  service worker (a propósito).
 - **Setear env vars de Vercel SOLO con `printf '%s' | npx vercel env add NAME production`**.
   `Out-File`/`echo` de PowerShell meten un BOM (U+FEFF) → `TypeError: Cannot convert argument to
   a ByteString` en cada llamada a Supabase (pasó con `SUPABASE_SERVICE_ROLE_KEY`).

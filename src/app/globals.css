@@ -268,3 +268,43 @@ h1, h2, h3 {
     transition-duration: 150ms !important;
   }
 }
+
+/* ---------------------------------------------------- /movil record button (PWA) */
+.rec-btn {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  border: 2px solid var(--border-2);
+  background: var(--surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.rec-btn:active { transform: scale(0.96); }
+.rec-btn:disabled { opacity: 0.45; }
+.rec-btn-inner {
+  display: block;
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  transition: width var(--dur-short) var(--ease-out), height var(--dur-short) var(--ease-out), border-radius var(--dur-short) var(--ease-out);
+}
+.rec-btn[data-recording="true"] { border-color: var(--accent); }
+.rec-btn[data-recording="true"] .rec-btn-inner {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  animation: rec-pulse 1.4s var(--ease-in-out) infinite;
+}
+@keyframes rec-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+.rec-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .rec-btn[data-recording="true"] .rec-btn-inner { animation: none; }
+}
