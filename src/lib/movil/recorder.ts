@@ -26,6 +26,32 @@ const MIME_CANDIDATES = [
   "audio/ogg;codecs=opus",
 ];
 
+// Safari 18.4+ ALSO claims WebM/Opus, but its WebM muxer is young (files without
+// duration/cues that server-side decoders choke on). On Apple WebKit the battle-
+// tested path is MP4/AAC, so there it goes first. Every iOS browser is WebKit.
+const APPLE_MIME_CANDIDATES = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
+
+export function isAppleWebKit(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const iOS = /iPhone|iPad|iPod/.test(ua) || (ua.includes("Mac") && typeof document !== "undefined" && "ontouchend" in document);
+  const desktopSafari = /Safari\//.test(ua) && !/Chrome\/|Chromium\/|Edg\/|OPR\/|Android/.test(ua);
+  return iOS || desktopSafari;
+}
+
+/** The container the recorder will ask for on this device ("" = browser default). */
+export function pickRecorderMime(): string {
+  if (typeof MediaRecorder === "undefined") return "";
+  for (const m of isAppleWebKit() ? APPLE_MIME_CANDIDATES : MIME_CANDIDATES) {
+    try {
+      if (MediaRecorder.isTypeSupported(m)) return m;
+    } catch {
+      /* ignore */
+    }
+  }
+  return "";
+}
+
 export function extFromMime(mime: string): string {
   if (mime.includes("mp4") || mime.includes("m4a") || mime.includes("aac")) return "m4a";
   if (mime.includes("mpeg") || mime.includes("mp3")) return "mp3";
@@ -76,17 +102,7 @@ export class SegmentedRecorder {
     if (typeof MediaRecorder === "undefined") {
       throw new RecorderError("Este navegador no soporta grabación (MediaRecorder). Actualiza iOS o usa Safari.");
     }
-    this.mime = "";
-    for (const m of MIME_CANDIDATES) {
-      try {
-        if (MediaRecorder.isTypeSupported(m)) {
-          this.mime = m;
-          break;
-        }
-      } catch {
-        /* ignore */
-      }
-    }
+    this.mime = pickRecorderMime();
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },

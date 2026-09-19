@@ -50,7 +50,7 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
 - **La limpieza LLM envuelve la transcripción como DATO** (`lib/movil/cleanup.ts`): `gpt-oss-120b`
   respondió a un dictado normal ("Analiza todos estos repositorios…") con "I'm sorry, but I can't
   help with that". Marcas `<<<TRANSCRIPCION>>>…<<<FIN>>>` + `plausibleCleanup()` (rechazo o largo
-  <60%/>150% → texto crudo). El desktop aún NO tiene este guard (tarea pendiente).
+  <60%/>150% → texto crudo). El desktop tiene el mismo guard desde 2026-09-18 (`core/llm_cleanup.py`).
 - **Descarga libre, cuenta obligatoria para USAR** (la app exige cuenta o key BYOK al abrir):
   gatear la descarga mata instalaciones; el lead se captura en el signup o en `/comunidad`.
 - **Leads de comunidad = usuarios de Auth** (sin migración): caen en el mismo funnel (perfil +
@@ -60,6 +60,14 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
 - **`NEXT_PUBLIC_SITE_URL` = vercel.app** hasta que exista dominio propio.
 
 ## Estado actual (2026-09-18)
+- **`/movil` endurecido para iPhone (2026-09-18, chat #10)** sin haber podido reproducir el fallo
+  real (Luis no lo describió): (1) en Safari/iOS el grabador pide **MP4/AAC primero** (Safari 18.4+
+  también anuncia WebM pero su muxer es joven) — `pickRecorderMime()`; (2) `cleanSecret()` quita
+  BOM/zero-width/saltos de la key pegada: un carácter no Latin-1 en `authorization` hace que
+  `fetch` lance TypeError ANTES de salir y se veía como falso "Sin conexión"; (3) un 4xx de Groq
+  (audio inválido) era código `server` → se reintentaba 3 veces; ahora es `rejected` y falla
+  rápido; (4) **Ajustes → Copiar diagnóstico**: UA, capacidades, mime y los últimos 15 fallos con
+  detalle técnico (`logDiag`, sin keys ni textos). Ante cualquier reporte de Luis: pedirle ese texto.
 - **`/movil` v2 (2026-09-18, mismo día)**: modo Conversación + subir audio/video largo + "Copiar
   para Claude" + recuperación de borrador. Probado: E2E real Groq con audio ES y EN en `language=auto`
   (cada uno sale en su idioma); en navegador con mic simulado (WAV inyectado, tramos de 3 s): 8

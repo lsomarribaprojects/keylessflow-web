@@ -43,19 +43,33 @@ export type EngineErrorCode =
   | "rate_limited"
   | "network"
   | "server"
+  | "rejected" // 4xx the server will never accept on retry (bad/unsupported audio…)
   | "no_model";
 
 export class EngineError extends Error {
   code: EngineErrorCode;
   status?: number;
   upgradeUrl?: string;
-  constructor(code: EngineErrorCode, message: string, status?: number, upgradeUrl?: string) {
+  /** Technical detail for the on-device diagnostics (never shown as the headline). */
+  detail?: string;
+  constructor(code: EngineErrorCode, message: string, status?: number, upgradeUrl?: string, detail?: string) {
     super(message);
     this.name = "EngineError";
     this.code = code;
     this.status = status;
     this.upgradeUrl = upgradeUrl;
+    this.detail = detail;
   }
+}
+
+/**
+ * A key/token pasted on a phone often drags invisible junk (zero-width space,
+ * BOM, smart quotes, a line break from Notes/WhatsApp). Any non-Latin-1 char in
+ * an `authorization` header makes fetch() throw a TypeError BEFORE the request —
+ * which used to surface as a fake "Sin conexión". Keep printable ASCII only.
+ */
+export function cleanSecret(value: string): string {
+  return value.replace(/[^!-~]/g, "");
 }
 
 export interface TranscribeOptions {
@@ -103,8 +117,8 @@ function mapGroqFailure(status: number, body: Record<string, unknown>): EngineEr
   if (status === 401) return new EngineError("invalid_key", "La Groq key no es válida. Revísala en Ajustes.", status);
   if (status === 413) return new EngineError("too_large", "El audio supera el límite de 25 MB.", status);
   if (status === 429) return new EngineError("rate_limited", "Groq está limitando las peticiones. Espera unos segundos e intenta de nuevo.", status);
-  if (status >= 500) return new EngineError("server", `Groq respondió ${status}. Intenta de nuevo.`, status);
-  return new EngineError("server", detail ? `Groq: ${detail}` : `Groq respondió ${status}.`, status);
+  if (status >= 500) return new EngineError("server", `Groq respondió ${status}. Intenta de nuevo.`, status, undefined, detail);
+  return new EngineError("rejected", detail ? `Groq: ${detail}` : `Groq respondió ${status}.`, status, undefined, detail);
 }
 
 function mapBackendFailure(status: number, body: Record<string, unknown>): EngineError {
@@ -122,7 +136,7 @@ function mapBackendFailure(status: number, body: Record<string, unknown>): Engin
   if (status === 413) return new EngineError("too_large", "El audio supera el límite de 25 MB.", status);
   if (status === 429) return new EngineError("rate_limited", "Demasiadas peticiones. Espera unos segundos.", status);
   if (status >= 500) return new EngineError("server", `El servidor respondió ${status}. Intenta de nuevo en un momento.`, status);
-  return new EngineError("server", error ? `Error del servidor: ${error}` : `El servidor respondió ${status}.`, status);
+  return new EngineError("rejected", error ? `Error del servidor: ${error}` : `El servidor respondió ${status}.`, status);
 }
 
 async function doFetch(input: string, init: RequestInit): Promise<Response> {
@@ -130,7 +144,8 @@ async function doFetch(input: string, init: RequestInit): Promise<Response> {
     return await fetch(input, init);
   } catch (e) {
     if ((e as Error)?.name === "AbortError") throw e;
-    throw new EngineError("network", "Sin conexión. Revisa tu internet e intenta de nuevo.");
+    const host = input.startsWith("http") ? new URL(input).host : "backend";
+    throw new EngineError("network", "Sin conexión. Revisa tu internet e intenta de nuevo.", undefined, undefined, `fetch ${host}: ${String(e)}`);
   }
 }
 
@@ -150,6 +165,24 @@ export async function transcribeAudio(
   const form = new FormData();
   form.set("file", audio, filename);
 
+  try {
+    return await transcribeWith(conn, form, language, opts, t0);
+  } catch (e) {
+    if (e instanceof EngineError) {
+      const about = `${filename} · ${audio.type || "sin tipo"} · ${Math.round(audio.size / 1024)} KB`;
+      e.detail = e.detail ? `${e.detail} · ${about}` : about;
+    }
+    throw e;
+  }
+}
+
+async function transcribeWith(
+  conn: Connection,
+  form: FormData,
+  language: string,
+  opts: TranscribeOptions,
+  t0: number,
+): Promise<TranscribeResult> {
   if (conn.kind === "byok") {
     form.set("model", WHISPER_MODEL);
     form.set("response_format", "text");

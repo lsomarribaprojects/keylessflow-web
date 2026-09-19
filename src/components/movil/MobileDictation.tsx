@@ -35,6 +35,7 @@ import { TONE_LABELS, type Tone } from "@/lib/movil/cleanup";
 import { SplitError, splitAudioToWavChunks } from "@/lib/movil/audio-split";
 import {
   activateAccount,
+  cleanSecret,
   EngineError,
   MAX_UPLOAD_BYTES,
   verifyGroqKey,
@@ -46,11 +47,13 @@ import {
   DEFAULT_CLAUDE_INSTRUCTION,
   transcribeSegment,
 } from "@/lib/movil/pipeline";
-import { extFromMime, RecorderError, SegmentedRecorder } from "@/lib/movil/recorder";
+import { extFromMime, pickRecorderMime, RecorderError, SegmentedRecorder } from "@/lib/movil/recorder";
 import {
   clearDraft,
   clearHistory,
   debugNumber,
+  loadDiag,
+  logDiag,
   recoverDraft,
   loadHistory,
   loadSettings,
@@ -156,7 +159,7 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
   const [seconds, setSeconds] = useState(0);
   const [liveText, setLiveText] = useState("");
   const [pending, setPending] = useState(0);
-  const [error, setError] = useState<{ message: string; upgradeUrl?: string } | null>(null);
+  const [error, setError] = useState<{ message: string; upgradeUrl?: string; detail?: string } | null>(null);
   const [copied, setCopied] = useState<"" | "plain" | "claude">("");
   const [sheet, setSheet] = useState<"none" | "settings" | "history">("none");
   const [standalone] = useState(() => isStandalone());
@@ -215,7 +218,9 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
 
   const fail = (e: unknown) => {
     const err = e as EngineError;
-    setError({ message: err?.message ?? String(e), upgradeUrl: err?.upgradeUrl });
+    const detail = [err?.code, err?.status, err?.detail].filter(Boolean).join(" · ");
+    logDiag("pipeline", err?.message ?? String(e), detail);
+    setError({ message: err?.message ?? String(e), upgradeUrl: err?.upgradeUrl, detail });
     setPhase("error");
     if (err?.code === "invalid_key" || err?.code === "invalid_token") setSheet("settings");
   };
@@ -233,6 +238,8 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
         session.parts[index] = "";
         session.failed += 1;
         session.firstError ??= e as Error;
+        const ee = e as EngineError;
+        logDiag(`tramo ${index + 1}`, ee?.message ?? String(e), [ee?.code, ee?.status, ee?.detail].filter(Boolean).join(" · "));
       } finally {
         setPending((n) => Math.max(0, n - 1));
       }
@@ -342,6 +349,7 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
         const recSeconds = Math.round((Date.now() - session.startedAt) / 1000);
         if (segments === 0) {
           stopTimer();
+          logDiag("grabador", "sin segmentos", `${recSeconds}s · mime ${pickRecorderMime() || "default"} · interrumpida=${interrupted}`);
           setError({ message: "Grabación demasiado corta. Mantén el micrófono un momento más." });
           setPhase("error");
           return;
@@ -350,6 +358,7 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
       },
       onError: (e) => {
         stopTimer();
+        logDiag("grabador", e.message, `mime ${pickRecorderMime() || "default"}`);
         setError({ message: e.message });
         setPhase("error");
       },
@@ -357,6 +366,7 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
     try {
       await rec.start();
     } catch (e) {
+      logDiag("micrófono", e instanceof RecorderError ? e.message : String(e));
       setError({ message: e instanceof RecorderError ? e.message : `No se pudo grabar: ${String(e)}` });
       setPhase("error");
       return;
@@ -408,6 +418,7 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
       await finalize(session, conn, s, 0, false);
     } catch (e) {
       if (e instanceof SplitError) {
+        logDiag("archivo", e.message, `${file.type || "sin tipo"} · ${Math.round(file.size / 1024)} KB`);
         setError({ message: e.message });
         setPhase("error");
       } else {
@@ -592,6 +603,7 @@ export function MobileDictation({ apiBase }: { apiBase: string }) {
             <div className="flex flex-1 flex-col items-center justify-center text-center">
               <p className="font-display text-xl font-semibold text-red-400">Algo falló</p>
               <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted">{error.message}</p>
+              {error.detail && <p className="mt-2 max-w-xs break-words font-mono text-[0.65rem] leading-relaxed text-faint">{error.detail}</p>}
               {error.upgradeUrl && (
                 <a href={error.upgradeUrl} className="btn-primary mt-5 text-sm">
                   Ver planes
@@ -692,7 +704,8 @@ function SettingsPanel({
   const [tab, setTab] = useState<"byok" | "account">(settings.mode === "account" ? "account" : "byok");
 
   const saveKey = async () => {
-    const k = keyDraft.trim();
+    const k = cleanSecret(keyDraft);
+    if (k !== keyDraft) setKeyDraft(k);
     if (!k.startsWith("gsk_")) {
       setMsg({ ok: false, text: "Una Groq key empieza por gsk_ (console.groq.com → API Keys)." });
       return;
@@ -757,6 +770,7 @@ function SettingsPanel({
               <span className="text-sm text-muted">Groq API key</span>
               <input
                 type="password"
+                autoComplete="off"
                 autoCapitalize="off"
                 autoCorrect="off"
                 spellCheck={false}
@@ -770,7 +784,7 @@ function SettingsPanel({
               Se guarda solo en este teléfono y va directo a Groq (no pasa por nuestro servidor). La misma key que usas en la app de Windows.
             </p>
             <button type="button" onClick={saveKey} disabled={busy !== ""} className="btn-primary mt-3 w-full text-[15px]" aria-disabled={busy !== ""}>
-              {busy === "key" ? "Verificando…" : settings.mode === "byok" && settings.groqKey === keyDraft.trim() ? "Key guardada ✓" : "Guardar y verificar"}
+              {busy === "key" ? "Verificando…" : settings.mode === "byok" && settings.groqKey === cleanSecret(keyDraft) ? "Key guardada ✓" : "Guardar y verificar"}
             </button>
           </div>
         ) : (
@@ -880,6 +894,8 @@ function SettingsPanel({
         </p>
       </section>
 
+      <DiagnosticsSection settings={settings} />
+
       <section className="border-t border-border pt-5 text-xs leading-relaxed text-faint">
         <p>
           <span className="text-muted">Audios o videos de WhatsApp:</span> mantén pulsado el mensaje → Reenviar/Compartir → Guardar en Archivos → aquí “subir
@@ -891,6 +907,57 @@ function SettingsPanel({
         </p>
       </section>
     </div>
+  );
+}
+
+/* -------------------------------------------------------- Diagnostics */
+/** Plain-text report of this device + the last failures. Never includes keys or transcripts. */
+function buildDiagnostics(settings: MobileSettings): string {
+  const nav = window.navigator as Navigator & { standalone?: boolean };
+  const lines = [
+    `KeyLess móvil · ${new Date().toISOString()}`,
+    `ua: ${nav.userAgent}`,
+    `instalada: ${nav.standalone === true || window.matchMedia?.("(display-mode: standalone)").matches ? "sí" : "no"} · https: ${window.location.protocol === "https:"} · online: ${nav.onLine}`,
+    `mediaDevices: ${Boolean(nav.mediaDevices?.getUserMedia)} · MediaRecorder: ${typeof MediaRecorder !== "undefined"} · mime: ${pickRecorderMime() || "default"}`,
+    `clipboard: ${Boolean(nav.clipboard?.writeText)} · share: ${typeof nav.share === "function"} · wakeLock: ${"wakeLock" in nav} · sw: ${"serviceWorker" in nav}`,
+    `conexión: ${settings.mode}${settings.mode === "byok" ? ` (key de ${settings.groqKey.length} caracteres)` : ""} · modo: ${settings.captureMode} · idioma: ${settings.language} · limpieza: ${settings.cleanup}`,
+    "",
+    "últimos fallos:",
+  ];
+  const events = loadDiag();
+  if (events.length === 0) lines.push("(ninguno registrado)");
+  for (const ev of events) {
+    lines.push(`- ${new Date(ev.at).toLocaleString("es")} [${ev.where}] ${ev.message}${ev.detail ? ` — ${ev.detail}` : ""}`);
+  }
+  return lines.join("\n");
+}
+
+function DiagnosticsSection({ settings }: { settings: MobileSettings }) {
+  const [report, setReport] = useState("");
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    const r = buildDiagnostics(settings);
+    setReport(r);
+    if (await writeClipboard(r)) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
+    }
+  };
+  return (
+    <section>
+      <p className="eyebrow">diagnóstico</p>
+      <p className="mt-3 text-xs leading-relaxed text-faint">
+        Si algo falla, toca aquí y pega el resultado en el chat de soporte. No incluye tu key ni tus textos.
+      </p>
+      <button type="button" onClick={copy} className="btn-ghost mt-3 w-full text-[15px]">
+        {copied ? "✓ Diagnóstico copiado" : "Copiar diagnóstico"}
+      </button>
+      {report && (
+        <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border bg-bg-band p-3 font-mono text-[0.65rem] leading-relaxed text-muted">
+          {report}
+        </pre>
+      )}
+    </section>
   );
 }
 

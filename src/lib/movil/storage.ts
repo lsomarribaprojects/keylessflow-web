@@ -163,6 +163,33 @@ export function recoverDraft(): Draft | null {
   return d;
 }
 
+/* ------------------------------------------------------------ diagnostics */
+// Nobody can attach a debugger to Luis's iPhone: the app keeps its own short
+// log of failures so "Copiar diagnóstico" (Ajustes) tells us exactly what broke.
+// NEVER store keys, tokens or transcript text here.
+export interface DiagEvent {
+  at: number;
+  where: string;
+  message: string;
+  detail?: string;
+}
+
+const DIAG_KEY = "kf.movil.diag.v1";
+const DIAG_MAX = 15;
+
+export function loadDiag(): DiagEvent[] {
+  try {
+    const arr = JSON.parse(window.localStorage.getItem(DIAG_KEY) ?? "[]") as DiagEvent[];
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+export function logDiag(where: string, message: string, detail?: string): void {
+  write(DIAG_KEY, [{ at: Date.now(), where, message, detail }, ...loadDiag()].slice(0, DIAG_MAX));
+}
+
 /** Test/debug overrides (set from the console): segment length, split threshold. */
 export function debugNumber(name: string, fallback: number): number {
   try {
