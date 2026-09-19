@@ -56,11 +56,17 @@ function foreignScriptDominant(text: string, threshold = 0.5): boolean {
 export function stripHallucinations(text: string): string {
   if (!text) return text;
   if (foreignScriptDominant(text)) return "";
+  const normalized = text.replace(/\s{2,}/g, " ").trim();
   let out = text.replace(ALWAYS_FAKE, "");
   let prev: string | null = null;
   while (prev !== out) {
     prev = out;
     out = out.replace(TRAILING_ARTIFACT, "").replace(/[\s.,!?…\-]+$/u, "");
   }
-  return out.replace(/\s{2,}/g, " ").trim();
+  out = out.replace(/\s{2,}/g, " ").trim();
+  // Nothing but trailing punctuation came off → no artifact was present: keep
+  // the sentence's own final "." / "?" (matters when segments are joined into
+  // a long transcript; the desktop pastes single phrases so it never noticed).
+  if (out === normalized.replace(/[\s.,!?…\-]+$/u, "")) return normalized;
+  return out;
 }

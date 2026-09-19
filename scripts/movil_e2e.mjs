@@ -44,6 +44,8 @@ const hallu = [
   ["お待ちしております", ""],
   ["ya termine el reporte gracias por ver el video", "ya termine el reporte"],
   ["gracias por ver el reporte que te mande", "gracias por ver el reporte que te mande"],
+  ["Hola, ¿cómo estás?", "Hola, ¿cómo estás?"],
+  ["Nos vemos el viernes. Thank you.", "Nos vemos el viernes"],
 ];
 for (const [inp, want] of hallu) {
   const got = stripHallucinations(inp);
@@ -92,6 +94,33 @@ try {
 } catch (e) {
   if (e?.code !== "invalid_key") { console.error("wrong error mapping:", e); process.exit(1); }
   console.log("invalid key → EngineError(invalid_key) OK");
+}
+
+// ------------------------------------------------ WAV splitter (pure part)
+{
+  const { encodeWav, chunkRanges } = await import("../src/lib/movil/wav.ts");
+  const rate = 16000;
+  const tone = new Float32Array(rate * 3).map((_, i) => Math.sin((i / rate) * 2 * Math.PI * 440) * 0.5);
+  const wav = new DataView(encodeWav(tone, rate));
+  const tag = (o) => String.fromCharCode(wav.getUint8(o), wav.getUint8(o + 1), wav.getUint8(o + 2), wav.getUint8(o + 3));
+  const ok =
+    tag(0) === "RIFF" && tag(8) === "WAVE" && tag(36) === "data" &&
+    wav.getUint32(24, true) === rate && wav.getUint16(22, true) === 1 &&
+    wav.getUint32(40, true) === tone.length * 2 && wav.byteLength === 44 + tone.length * 2;
+  const ranges = chunkRanges(rate * 1000, rate, 480);
+  if (!ok || ranges.length !== 3 || ranges[2][1] !== rate * 1000) { console.error("wav helpers FAIL", ok, ranges); process.exit(1); }
+  console.log("wav encode + chunk ranges OK");
+}
+
+// --------------------------- extra audios (argv[3..]): language auto-detect
+// e.g. node scripts/movil_e2e.mjs clip.wav es.wav en.wav  → each must transcribe
+// in ITS OWN language with language=auto (what Conversación mode relies on).
+for (const extra of process.argv.slice(3)) {
+  const b = new Blob([readFileSync(extra)], { type: "audio/wav" });
+  const r = await transcribeAudio(conn, b, "extra.wav", { language: "auto" });
+  const t = stripHallucinations(r.text);
+  console.log(`auto-lang ${extra.split(/[\\/]/).pop()}: ${r.elapsedMs} ms → ${JSON.stringify(t.slice(0, 220))}`);
+  if (!t) { console.error("empty transcription for", extra); process.exit(1); }
 }
 
 console.log("MOVIL_E2E_OK");

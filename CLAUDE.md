@@ -33,6 +33,12 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
    MediaRecorder → Whisper → filtro de alucinaciones → limpieza LLM → Copiar/Compartir + historial
    local. Dos conexiones: Groq key propia (llama a `api.groq.com` DIRECTO desde el navegador, CORS
    `*`) o código `KF-…` → `/api/auth/activate` → token `kfd_` → `/api/transcribe` + `/api/llm`.
+   **Modo Conversación** (`lib/movil/recorder.ts`): rota el MediaRecorder cada 4 min sobre el mismo
+   stream, transcribe cada tramo mientras sigue grabando (cola en orden, retry solo en errores
+   transitorios), texto en vivo, borrador en localStorage tras cada tramo (`recoverDraft()` lo pasa
+   al Historial si iOS mató la página). Archivos > 25 MB → `audio-split.ts` los parte en WAV 16 kHz
+   de 8 min. "Copiar para Claude" = `buildClaudePaste()` (contexto + instrucción editable +
+   `<transcripcion>`). Conversación/archivo NO pasan por el LLM (literal); idioma auto es/en.
    `manifest.ts` + `public/sw.js` (solo shell) + iconos en `public/icons`. Puerto de
    `hallucination_filter.py` y `llm_cleanup.py` del desktop: mantener en sincronía.
 
@@ -54,7 +60,13 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
 - **`NEXT_PUBLIC_SITE_URL` = vercel.app** hasta que exista dominio propio.
 
 ## Estado actual (2026-09-18)
-- **Nuevo: `/movil` (PWA)** — build/tsc/eslint OK; E2E real BYOK contra Groq
+- **`/movil` v2 (2026-09-18, mismo día)**: modo Conversación + subir audio/video largo + "Copiar
+  para Claude" + recuperación de borrador. Probado: E2E real Groq con audio ES y EN en `language=auto`
+  (cada uno sale en su idioma); en navegador con mic simulado (WAV inyectado, tramos de 3 s): 8
+  tramos en orden, texto en vivo, borrador, historial, pegado para Claude correcto; split de archivo
+  en 4 WAV. Flags de prueba: `localStorage kf.movil.debug.{segMs,splitBytes,splitSeconds}`.
+  **Sigue sin probarse en un iPhone real** (mic AAC/mp4, suspensión al bloquear pantalla).
+- **`/movil` (PWA)** — build/tsc/eslint OK; E2E real BYOK contra Groq
   (`node scripts/movil_e2e.mjs` → `MOVIL_E2E_OK`); UI probada en viewport iPhone con Groq
   stubbeado (settings → subir audio → texto limpio → historial). **Falta probar en el iPhone
   real de Luis**: Safari → `/movil` → Compartir → "Añadir a pantalla de inicio" → Ajustes → pegar
@@ -69,6 +81,11 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
   + alertas de gasto (plan en bitácora del desktop); página `/byok`.
 
 ## Trampas
+- **Chromium anuncia `audio/mp4` pero lo graba con Opus** (`audio/mp4;codecs=opus`): por eso
+  `recorder.ts` prefiere WebM/Opus y deja MP4 (AAC real en iOS Safari) como fallback.
+- **iOS corta el micrófono al bloquear pantalla / cambiar de app**: no hay grabación en segundo
+  plano para PWAs. El recorder termina con `interrupted` y conserva lo captado; Wake Lock mantiene
+  la pantalla encendida. No prometer "graba con el teléfono bloqueado".
 - **`react-hooks/set-state-in-effect` y `purity` son errores de ESLint** (React Compiler rules en
   Next 16): estado inicial del navegador → `useState(() => …)` en un componente montado con
   `next/dynamic({ ssr:false })` (así está `/movil`), no `setState` dentro de `useEffect`.
