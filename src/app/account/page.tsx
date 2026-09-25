@@ -9,6 +9,8 @@
  *   - sign-out
  *
  * Free users see an "Upgrade to Pro" CTA. Paid users see "Manage billing".
+ * Students (registered at /estudiantes or /comunidad) use the app free with
+ * their own Groq key: they see downloads + guide + key steps, no trial/upsell.
  */
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -27,7 +29,12 @@ const RELEASES = "https://github.com/lsomarribaprojects/KeyLess-Flow/releases/la
 const INSTALLER_WIN = `${RELEASES}/KeyLessFlow-Setup.exe`;
 const INSTALLER_MAC = `${RELEASES}/KeyLess-by-Sinsajo.dmg`;
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bienvenida?: string }>;
+}) {
+  const { bienvenida } = await searchParams;
   const supabase = await createServerClient();
   const {
     data: { user },
@@ -68,15 +75,18 @@ export default async function AccountPage() {
   const cap = isPaid ? PRO_SOFT_CAP_SECONDS : FREE_QUOTA_SECONDS;
   const pctUsed = Math.min(100, Math.round((secondsUsed / cap) * 100));
   const trialEndDate = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
-  const trialActive = !isPaid && trialEndDate ? trialEndDate.getTime() > Date.now() : false;
-  const trialDaysLeft = trialEndDate
-    ? Math.max(0, Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
+  const msLeft = trialEndDate ? msUntil(trialEndDate) : 0;
+  const trialActive = !isPaid && msLeft > 0;
+  const trialDaysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
 
   // Activation code: deterministic, derived from user.id so it's stable
   // across logins but unique per user. The /api/auth/activate endpoint
   // accepts this code from the desktop app.
   const activationCode = formatActivationCode(user.id);
+
+  const meta = (user.user_metadata ?? {}) as { name?: string; student?: boolean; community?: boolean };
+  const isStudent = !isPaid && Boolean(meta.student || meta.community);
+  const firstName = (meta.name ?? "").trim().split(/\s+/)[0] || user.email?.split("@")[0];
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -88,13 +98,25 @@ export default async function AccountPage() {
             className="font-display mt-2 font-semibold tracking-tight"
             style={{ fontSize: "var(--text-display-s)" }}
           >
-            Hola, {user.email?.split("@")[0]}
+            Hola, {firstName}
           </h1>
         </div>
         <SignOutButton />
       </div>
 
-      {/* Plan card */}
+      {bienvenida && (
+        <section className="mt-8 rounded-lg border border-accent/30 bg-surface p-5">
+          <p className="font-medium text-fg">¡Listo, tu cuenta está creada! 🎉</p>
+          <p className="mt-1 text-sm text-muted">
+            Sigue estos pasos en orden: descarga la app, consigue tu API key gratis y abre la guía.
+            Puedes volver cuando quieras desde “Iniciar sesión”.
+          </p>
+        </section>
+      )}
+
+      {isStudent ? (
+        <StudentPlan />
+      ) : (
       <section className="mt-10 rounded-lg border border-border-2 bg-surface p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
@@ -158,6 +180,7 @@ export default async function AccountPage() {
           )}
         </div>
       </section>
+      )}
 
       {/* Download */}
       <section className="mt-6 rounded-lg border border-border bg-surface p-6">
@@ -186,7 +209,7 @@ export default async function AccountPage() {
 
       {/* Activation code — needed by every account that can dictate: paid OR
           a free account with an active trial. There is no BYOK path anymore. */}
-      {(isPaid || trialActive) && (
+      {!isStudent && (isPaid || trialActive) && (
         <section className="mt-6 rounded-lg border border-accent/30 bg-surface p-6">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             código de activación
@@ -208,6 +231,19 @@ export default async function AccountPage() {
         </section>
       )}
 
+      {/* Guide — for everyone; for students it's half of what they signed up for */}
+      <section className="mt-6 rounded-lg border border-border bg-surface p-6">
+        <p className="font-mono text-xs uppercase tracking-widest text-faint">guía de uso</p>
+        <h2 className="font-display mt-2 text-xl font-semibold">KeyLess en 4 pasos</h2>
+        <p className="mt-1 text-sm text-muted">
+          Instalación, API key gratis, atajos, comandos de voz y qué hacer si algo falla. Puedes
+          guardarla como PDF.
+        </p>
+        <Link href="/guia" className="btn-primary mt-4 inline-flex items-center justify-center">
+          Abrir la guía →
+        </Link>
+      </section>
+
       {/* Mobile PWA — same activation code, nothing to install from a store */}
       <section className="mt-6 rounded-lg border border-border bg-surface p-6">
         <p className="font-mono text-xs uppercase tracking-widest text-faint">
@@ -218,8 +254,9 @@ export default async function AccountPage() {
         </h2>
         <p className="mt-1 text-sm text-muted">
           Abre <Link href="/movil" className="text-accent underline">/movil</Link> en Safari, toca
-          Compartir → &ldquo;Añadir a pantalla de inicio&rdquo; y pega el mismo código de activación
-          en Ajustes. Graba, transcribe y copia el texto donde quieras.
+          Compartir → &ldquo;Añadir a pantalla de inicio&rdquo; y pega{" "}
+          {isStudent ? "tu API key de Groq" : "el mismo código de activación"} en Ajustes. Graba,
+          transcribe y copia el texto donde quieras.
         </p>
         <Link href="/movil" className="btn-ghost mt-4 inline-flex items-center justify-center">
           Abrir la app móvil
@@ -227,7 +264,7 @@ export default async function AccountPage() {
       </section>
 
       {/* Free → upsell */}
-      {!isPaid && (
+      {!isPaid && !isStudent && (
         <section className="mt-6 rounded-lg border border-border bg-bg-band p-6">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">
             estás en Free Trial
@@ -251,7 +288,48 @@ export default async function AccountPage() {
   );
 }
 
+/* ------------------------------------------------------------------ student plan */
+function StudentPlan() {
+  return (
+    <section className="mt-10 rounded-lg border border-border-2 bg-surface p-6">
+      <p className="font-mono text-xs uppercase tracking-widest text-faint">plan actual</p>
+      <p className="font-display mt-1 text-2xl font-semibold">Estudiante · gratis</p>
+      <p className="mt-1 text-sm text-muted">
+        Usas la app con tu propia API key de Groq: sin límite de tiempo y sin pagar nada.
+      </p>
+      <ol className="mt-5 space-y-2 text-sm leading-relaxed text-muted">
+        <li>
+          <b className="text-fg">1.</b> Entra a{" "}
+          <a
+            href="https://console.groq.com/keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent underline underline-offset-2"
+          >
+            console.groq.com/keys
+          </a>{" "}
+          (cuenta con Google) → <b className="text-fg">Create API Key</b> → cópiala (empieza con{" "}
+          <code className="text-fg">gsk_</code>).
+        </li>
+        <li>
+          <b className="text-fg">2.</b> Abre KeyLess → abajo dice{" "}
+          <i className="text-fg">“¿Workshop / tienes tu propia API key?”</i> → pégala →{" "}
+          <b className="text-fg">Usar mi API key</b>.
+        </li>
+        <li>
+          <b className="text-fg">3.</b> Mantén <b className="text-fg">Ctrl + Alt</b>, habla y suelta.
+        </li>
+      </ol>
+    </section>
+  );
+}
+
 /* ------------------------------------------------------------------ helpers */
+// Server Component rendered per request: reading the clock here is fine.
+function msUntil(d: Date): number {
+  return d.getTime() - Date.now();
+}
+
 function formatHours(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
   const totalMinutes = Math.round(seconds / 60);

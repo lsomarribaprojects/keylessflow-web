@@ -21,6 +21,7 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
+        <StudentsBand />
         <TrustBand />
         <Stats />
         <Features />
@@ -50,6 +51,9 @@ function Header() {
           v{APP_VERSION} · windows + macOS
         </span>
         <div className="ml-auto flex items-center gap-1 sm:gap-5">
+          <a href="/estudiantes" className="text-sm text-muted transition-colors duration-150 hover:text-fg">
+            Estudiantes
+          </a>
           <a href="#precios" className="hidden text-sm text-muted transition-colors duration-150 hover:text-fg sm:inline">
             Precios
           </a>
@@ -166,6 +170,31 @@ function PillMotif() {
         </p>
       </div>
     </div>
+  );
+}
+
+/* ============================================================ Students hook (free account → app + guide) */
+function StudentsBand() {
+  return (
+    <section className="border-b border-border">
+      <div className="mx-auto max-w-6xl px-6 py-10">
+        <Reveal className="flex flex-col gap-6 rounded-lg border border-accent/30 bg-surface p-6 md:flex-row md:items-center md:justify-between md:p-8">
+          <div className="max-w-2xl">
+            <p className="eyebrow">¿Eres estudiante de Sinsajo?</p>
+            <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
+              Crea tu cuenta gratis y llévate la app con su guía
+            </h2>
+            <p className="mt-2 leading-relaxed text-muted">
+              Adentro tienes la descarga para Windows y Mac, la app del teléfono y la guía de uso
+              paso a paso. Sin tarjeta: usas tu propia API key gratuita.
+            </p>
+          </div>
+          <a href="/estudiantes" className="btn-primary shrink-0 justify-center">
+            Quiero mi cuenta →
+          </a>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 

@@ -23,7 +23,7 @@ export default function LoginPage() {
           Iniciar sesión
         </h1>
         <p className="mt-3 text-center text-muted">
-          Te enviamos un magic link al correo. Sin contraseña.
+          Con tu contraseña, o te enviamos un link de acceso al correo.
         </p>
         <div className="mt-10">
           <Suspense fallback={<div className="h-32" />}>

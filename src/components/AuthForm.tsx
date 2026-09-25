@@ -18,13 +18,18 @@ type Mode = "login" | "signup";
  *   - explicit `next` query param wins (e.g. /pricing for "Subscribe Pro"
  *     button that redirected here)
  *   - otherwise: /account
+ *
+ * Login mode also takes an optional password (students set one at
+ * /estudiantes): filled → signInWithPassword, straight to `next`; empty →
+ * magic link as before.
  */
 export function AuthForm({ mode }: { mode: Mode }) {
   const supabase = createClient();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/account";
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -33,6 +38,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
     if (!email.trim()) return;
     setStatus("sending");
     setErrorMsg(null);
+    if (mode === "login" && password) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      if (error) {
+        setErrorMsg(
+          error.message.toLowerCase().includes("invalid")
+            ? "Correo o contraseña incorrectos. Si no recuerdas la contraseña, déjala vacía y te enviamos un link."
+            : error.message,
+        );
+        setStatus("error");
+        return;
+      }
+      window.location.href = next.startsWith("/") ? next : "/account";
+      return;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
@@ -118,6 +140,21 @@ export function AuthForm({ mode }: { mode: Mode }) {
             className="mt-1.5 block w-full rounded-md border border-border-2 bg-surface px-3.5 py-2.5 text-fg outline-none transition focus:border-accent"
           />
         </label>
+        {mode === "login" && (
+          <label className="block">
+            <span className="block text-sm text-muted">
+              Contraseña <span className="text-faint">(opcional)</span>
+            </span>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Vacía = te enviamos un link al correo"
+              className="mt-1.5 block w-full rounded-md border border-border-2 bg-surface px-3.5 py-2.5 text-fg outline-none transition focus:border-accent"
+            />
+          </label>
+        )}
         <button
           type="submit"
           disabled={status === "sending"}
@@ -126,8 +163,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
         >
           {status === "sending"
             ? "Enviando..."
-            : mode === "signup"
-              ? "Enviar magic link"
+            : mode === "login" && password
+              ? "Entrar"
               : "Enviar magic link"}
         </button>
       </form>

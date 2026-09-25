@@ -25,8 +25,13 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
    lista de modelos con fallback (espejo de `config.LLM_MODEL_CANDIDATES` del desktop).
 3. `src/app/api/auth/activate` — código `KF-…` → token desktop. `api/checkout`, `api/billing/portal`,
    `api/stripe/webhook` — Stripe (inactivo hasta poner keys).
-4. `src/app/api/community` + `/comunidad` — captura de leads del workshop (crea usuario Supabase
-   Auth con metadata; insert opcional en `community_leads`). `api/waitlist` — Mac/Linux.
+4. `src/app/api/community` + **`/estudiantes`** — registro de estudiantes/workshop: nombre+correo+
+   contraseña → crea usuario Auth con esa contraseña (`user_metadata.student`) → el navegador entra
+   con `signInWithPassword` → `/account` (vista Estudiante: descargas, pasos de API key, guía; sin
+   trial/upsell). `/comunidad` redirige a `/estudiantes`. `/guia` = guía de uso (solo con sesión,
+   "Guardar como PDF" = imprimir; contenido en `components/GuideContent.tsx`, espejo de
+   `docs/WORKSHOP.md` del desktop). `/login` acepta contraseña opcional (vacía = magic link).
+   Gancho en el landing: `StudentsBand` bajo el hero + link "Estudiantes". `api/waitlist` — Mac/Linux.
 5. Páginas: `/` landing (pinea `APP_VERSION` a assets del release), `/signup`, `/login`,
    `/account` (descargas Win/Mac + código de activación), `/pricing`. Schema: `supabase/schema.sql`.
 6. **`/movil` = PWA para iPhone/Android** (`src/app/movil`, `components/movil`, `lib/movil`):
@@ -43,6 +48,11 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
    `hallucination_filter.py` y `llm_cleanup.py` del desktop: mantener en sincronía.
 
 ## Decisiones y por qué
+- **Estudiantes con contraseña, no magic link**: el SMTP incluido de Supabase manda pocos correos
+  por hora; una clase entera registrándose a la vez se quedaría esperando un link que no llega.
+  Si el correo ya existe → 409 `exists` y NUNCA se toca su contraseña (evita tomar cuentas ajenas).
+  Honeypot `website` contra bots. Los estudiantes no ven el código `KF-…` (usarían el trial
+  managed, que paga Luis); siguen teniéndolo técnicamente vía trigger de trial.
 - **iPhone = PWA, no app nativa**: iOS no permite hotkeys globales ni pegar en otras apps desde
   web, y una app nativa exige Swift + Mac + cuenta de developer. La PWA cubre el caso real (grabar →
   texto → copiar/compartir a WhatsApp/Notas) y se instala desde Safari sin App Store. BYOK va
@@ -59,7 +69,14 @@ Env: `.env.local` (gitignored) — ver `.env.local.example`. Prod: Vercel → Se
 - **Modelo LLM nunca hardcodeado**: Groq rota su catálogo (retiró llama-3.3 en 2026-08).
 - **`NEXT_PUBLIC_SITE_URL` = vercel.app** hasta que exista dominio propio.
 
-## Estado actual (2026-09-18)
+## Estado actual (2026-09-25)
+- **Flujo `/estudiantes` (chat #22, commit local, SIN push)**: tsc/eslint/build OK; probado en
+  local: `/comunidad`→`/estudiantes`, `/guia` sin sesión → login, validaciones del API (400s,
+  honeypot 200 sin guardar), error claro en el form cuando Supabase falla, guía y landing en 375 px
+  sin scroll horizontal. **Falta**: el alta real + entrar a `/account` como estudiante (Supabase
+  pausado). Tras restaurarlo: registrarse en `/estudiantes` con un correo de prueba → debe caer en
+  `/account?bienvenida=1` con plan "Estudiante · gratis"; repetir el correo → "Ese correo ya tiene
+  cuenta"; borrar el usuario en Supabase → Auth.
 - **`/movil` endurecido para iPhone (2026-09-18, chat #10)** sin haber podido reproducir el fallo
   real (Luis no lo describió): (1) en Safari/iOS el grabador pide **MP4/AAC primero** (Safari 18.4+
   también anuncia WebM pero su muxer es joven) — `pickRecorderMime()`; (2) `cleanSecret()` quita

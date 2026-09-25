@@ -1,6 +1,14 @@
 /**
  * POST /api/community
- *   body: { name: string, email: string, whatsapp?: string, source?: string }
+ *   body: { name, email, whatsapp?, source?, password?, website? }
+ *
+ * With `password` (the /estudiantes flow) the user is created WITH that
+ * password so the browser can sign in right away — no email round-trip
+ * (Supabase's built-in SMTP allows only a few emails per hour, a whole class
+ * signing up at once would get stuck). If the email already has an account
+ * we answer 409 `exists` and NEVER touch its password: that would let anyone
+ * take over an account by re-registering its email.
+ * `website` is a honeypot: humans never see it, bots fill it.
  *
  * Lead capture for workshop / community attendees who get the app FREE with
  * their own Groq key (BYOK). Public endpoint, no auth.
@@ -32,18 +40,29 @@ export async function POST(req: NextRequest) {
     email?: string;
     whatsapp?: string;
     source?: string;
+    password?: string;
+    website?: string;
   };
+
+  if (body.website) {
+    // Honeypot tripped: pretend success, store nothing.
+    return NextResponse.json({ ok: true, email: "" });
+  }
 
   const name = (body.name ?? "").trim().slice(0, 80);
   const email = (body.email ?? "").trim().toLowerCase();
   const whatsapp = (body.whatsapp ?? "").trim().slice(0, 32);
   const source = (body.source ?? "comunidad").trim().slice(0, 64);
+  const password = body.password ?? "";
 
   if (name.length < 2) {
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   }
   if (!EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "invalid_email" }, { status: 400 });
+  }
+  if (password && (password.length < 8 || password.length > 72)) {
+    return NextResponse.json({ error: "weak_password" }, { status: 400 });
   }
 
   const admin = createAdminClient();
@@ -52,7 +71,8 @@ export async function POST(req: NextRequest) {
   const { error: authErr } = await admin.auth.admin.createUser({
     email,
     email_confirm: true,
-    user_metadata: { name, whatsapp, source, community: true },
+    ...(password ? { password } : {}),
+    user_metadata: { name, whatsapp, source, community: true, student: Boolean(password) },
   });
   if (authErr) {
     const msg = (authErr.message ?? "").toLowerCase();
@@ -61,6 +81,9 @@ export async function POST(req: NextRequest) {
     if (!alreadyExists) {
       console.error("[community] createUser failed:", authErr);
       return NextResponse.json({ error: "store_failed" }, { status: 500 });
+    }
+    if (password) {
+      return NextResponse.json({ error: "exists" }, { status: 409 });
     }
   }
 
