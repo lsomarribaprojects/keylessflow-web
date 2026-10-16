@@ -20,6 +20,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -27,12 +28,22 @@ export const runtime = "nodejs";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(`community:${clientIp(req)}`, 5, 10 * 60_000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
     email?: string;
     whatsapp?: string;
     source?: string;
+    website?: string; // honeypot — real users never fill it
   };
+
+  // Honeypot: bots fill every field. Pretend success, store nothing.
+  if (body.website) {
+    return NextResponse.json({ ok: true, email: "", returning: false });
+  }
 
   const name = (body.name ?? "").trim().slice(0, 80);
   const email = (body.email ?? "").trim().toLowerCase();
@@ -51,7 +62,8 @@ export async function POST(req: NextRequest) {
   // 1. Primary: auth user (works with the existing schema + triggers).
   const { error: authErr } = await admin.auth.admin.createUser({
     email,
-    email_confirm: true,
+    // Not confirmed: the address was never verified. The lead confirms it the
+    // first time they sign in with the magic link.
     user_metadata: { name, whatsapp, source, community: true },
   });
   if (authErr) {

@@ -8,6 +8,7 @@ export function CommunityForm({ downloads }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [website, setWebsite] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [err, setErr] = useState("");
 
@@ -19,7 +20,7 @@ export function CommunityForm({ downloads }: Props) {
       const res = await fetch("/api/community", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, whatsapp, source: "comunidad" }),
+        body: JSON.stringify({ name, email, whatsapp, source: "comunidad", website }),
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
@@ -98,6 +99,17 @@ export function CommunityForm({ downloads }: Props) {
           />
         </label>
       </div>
+      {/* Honeypot: hidden from people, bots fill it. */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        className="hidden"
+      />
       {err && <p className="mt-3 text-sm text-red-400">{err}</p>}
       <button
         type="submit"
