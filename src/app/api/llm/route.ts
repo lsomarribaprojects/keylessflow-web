@@ -130,8 +130,9 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(payload),
       });
     } catch (e) {
+      console.error("[llm] groq unreachable:", e);
       return NextResponse.json(
-        { error: "groq_unreachable", detail: String(e).slice(0, 200) },
+        { error: "groq_unreachable" },
         { status: 502 },
       );
     }
@@ -145,8 +146,9 @@ export async function POST(req: NextRequest) {
     }
     if (!groqResp.ok) {
       const detail = await groqResp.text().catch(() => "");
+      console.error(`[llm] groq failed (${groqResp.status}):`, detail.slice(0, 500));
       return NextResponse.json(
-        { error: "groq_failed", status: groqResp.status, detail: detail.slice(0, 200) },
+        { error: "groq_failed", status: groqResp.status },
         { status: 502 },
       );
     }
@@ -158,8 +160,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ text, model });
   }
 
+  console.error(`[llm] no model available (${lastStatus}):`, lastDetail.slice(0, 500));
   return NextResponse.json(
-    { error: "no_model_available", status: lastStatus, detail: lastDetail.slice(0, 200) },
+    { error: "no_model_available", status: lastStatus },
     { status: 502 },
   );
 }

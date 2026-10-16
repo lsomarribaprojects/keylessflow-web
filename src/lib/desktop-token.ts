@@ -12,12 +12,11 @@
  * Format: kfd_<base64url(userId|exp)>.<base64url(hmac-sha256(payload, secret))>
  *   - prefix `kfd_` lets /api/transcribe distinguish from Supabase JWTs at
  *     a glance (Supabase tokens start with `eyJ`).
- *   - secret is SUPABASE_SERVICE_ROLE_KEY — never leaves the backend.
+ *   - secret is DESKTOP_TOKEN_SECRET (dedicated, server-only). Rotating it
+ *     invalidates every desktop token; users reconnect with a new code.
  */
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
-
-import { env } from "@/lib/env";
 
 export const DESKTOP_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
@@ -52,9 +51,17 @@ export function verifyDesktopToken(
   return { userId, exp };
 }
 
+function tokenSecret(): string {
+  const secret = process.env.DESKTOP_TOKEN_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error("Missing DESKTOP_TOKEN_SECRET (min 32 chars).");
+  }
+  return secret;
+}
+
 function sign(payload: string): string {
   return b64url(
-    createHmac("sha256", env.SUPABASE_SERVICE_ROLE_KEY)
+    createHmac("sha256", tokenSecret())
       .update(payload)
       .digest(),
   );

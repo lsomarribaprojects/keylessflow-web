@@ -12,6 +12,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { WaitlistPlatform } from "@/lib/supabase/database.types";
 
@@ -21,11 +22,21 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALLOWED_PLATFORMS: WaitlistPlatform[] = ["mac", "linux"];
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(`waitlist:${clientIp(req)}`, 10, 10 * 60_000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   const body = (await req.json().catch(() => ({}))) as {
     email?: string;
     platform?: string;
     source?: string;
+    website?: string; // honeypot — real users never fill it
   };
+
+  // Honeypot: bots fill every field. Pretend success, store nothing.
+  if (body.website) {
+    return NextResponse.json({ ok: true, email: "", platform: "" });
+  }
 
   const email = (body.email ?? "").trim().toLowerCase();
   const platform = (body.platform ?? "").trim() as WaitlistPlatform;

@@ -38,6 +38,10 @@ export async function GET(req: NextRequest) {
   }
 
   // Only allow same-origin redirects in `next` to prevent open-redirect abuse.
-  const safeNext = next.startsWith("/") ? next : "/account";
+  // `//evil.com` and `/\\evil.com` are protocol-relative → external; reject them.
+  const safeNext =
+    next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\")
+      ? next
+      : "/account";
   return NextResponse.redirect(new URL(safeNext, env.SITE_URL));
 }

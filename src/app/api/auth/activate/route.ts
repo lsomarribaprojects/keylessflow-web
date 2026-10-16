@@ -19,6 +19,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { env } from "@/lib/env";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { SubscriptionRow, ProfileRow } from "@/lib/supabase/database.types";
 import { mintDesktopToken, DESKTOP_TOKEN_TTL_SECONDS } from "@/lib/desktop-token";
@@ -26,7 +27,18 @@ import { mintDesktopToken, DESKTOP_TOKEN_TTL_SECONDS } from "@/lib/desktop-token
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json().catch(() => ({}))) as { code?: string };
+  // Brute-force guard: activation codes are guessable in theory.
+  if (!rateLimit(`activate:${clientIp(req)}`, 10, 15 * 60_000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
+  const body = (await req.json().catch(() => ({}))) as {
+    code?: string;
+    website?: string; // honeypot — the desktop app never sends it
+  };
+  if (body.website) {
+    return NextResponse.json({ error: "code_not_found" }, { status: 404 });
+  }
   const code = (body.code ?? "").trim().toUpperCase();
 
   // Format: KF-XXXX-XXXX-XXXX where each X is hex from the user UUID.

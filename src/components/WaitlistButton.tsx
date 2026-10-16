@@ -22,6 +22,7 @@ export function WaitlistButton({
 }) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -34,7 +35,7 @@ export function WaitlistButton({
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), platform, source }),
+        body: JSON.stringify({ email: email.trim(), platform, source, website }),
       });
       const body = await res.json();
       if (!res.ok || !body.ok) {
@@ -71,6 +72,17 @@ export function WaitlistButton({
 
   return (
     <form onSubmit={submit} className="space-y-2">
+      {/* Honeypot: hidden from people, bots fill it. */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        className="hidden"
+      />
       <input
         type="email"
         required
